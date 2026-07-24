@@ -41,9 +41,12 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+console.log('MONGODB_URI set:', !!process.env.MONGODB_URI);
+console.log('JWT_SECRET set:', !!process.env.JWT_SECRET);
+
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sajhanet', {})
   .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.error('MongoDB Error:', err));
+  .catch(err => console.error('MongoDB Error:', err.message));
 
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
@@ -89,6 +92,15 @@ app.use('/api/settings', require('./routes/settings'));
 app.use('/api/cms', require('./routes/cms'));
 app.use('/api/complaints', require('./routes/complaints'));
 app.use('/api/feedbacks', require('./routes/feedbacks'));
+
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok',
+    mongodb: !!process.env.MONGODB_URI,
+    jwt: !!process.env.JWT_SECRET,
+    nodeEnv: process.env.NODE_ENV
+  });
+});
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
