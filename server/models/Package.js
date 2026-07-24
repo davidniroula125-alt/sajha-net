@@ -6,17 +6,8 @@ const packageSchema = new mongoose.Schema({
   speed: { type: Number, required: true },
   speedUnit: { type: String, default: 'Mbps' },
   type: { type: String, enum: ['internet', 'combo', 'business', 'enterprise'], default: 'internet' },
-  price: {
-    monthly: { type: Number, required: true },
-    quarterly: { type: Number },
-    halfYearly: { type: Number },
-    yearly: { type: Number, required: true }
-  },
-  billingCycles: [{
-    cycle: { type: String, enum: ['monthly', 'quarterly', 'halfYearly', 'yearly'] },
-    price: { type: Number, required: true },
-    discount: { type: Number, default: 0 }
-  }],
+  billingCycle: { type: String, enum: ['monthly', 'quarterly', 'halfYearly', 'yearly'], default: 'yearly' },
+  price: { type: Number, required: true },
   installationCharge: { type: Number, default: 0 },
   image: { type: String, default: '' },
   badge: { type: String, default: '' },

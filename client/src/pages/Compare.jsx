@@ -23,8 +23,8 @@ export default function Compare() {
 
   const allFeatures = [
     { key: 'speed', label: 'Speed (Mbps)' },
-    { key: 'price.yearly', label: 'Yearly Price (NPR)' },
-    { key: 'price.monthly', label: 'Monthly Price (NPR)' },
+    { key: 'price', label: 'Price' },
+    { key: 'billingCycle', label: 'Billing Cycle' },
     { key: 'includes.router', label: 'Free Router' },
     { key: 'includes.mesh', label: 'Mesh WiFi' },
     { key: 'includes.dropWire', label: 'Free Drop Wire' },
@@ -53,6 +53,11 @@ export default function Compare() {
     if (val === true) return <FiCheck className="w-4 h-4 text-success-500" />;
     if (Array.isArray(val)) return val.length > 0 ? val.join(', ') : <FiX className="w-4 h-4 text-gray-300" />;
     if (typeof val === 'number') return val.toLocaleString();
+    if (typeof val === 'string') {
+      const cycleLabels = { monthly: 'Monthly', quarterly: 'Quarterly', halfYearly: 'Half Yearly', yearly: 'Yearly' };
+      if (cycleLabels[val]) return cycleLabels[val];
+      return val;
+    }
     return String(val);
   };
 
@@ -108,7 +113,7 @@ export default function Compare() {
                         {pkg.isPopular && <FiStar className="w-4 h-4 text-yellow-500" />}
                         {pkg.name}
                       </div>
-                      <p className="text-xs text-primary-500 font-normal mt-1">NPR. {(pkg.price?.yearly || pkg.price?.monthly)?.toLocaleString()}/yr</p>
+                      <p className="text-xs text-primary-500 font-normal mt-1">{(pkg.billingCycle || 'yearly').charAt(0).toUpperCase() + (pkg.billingCycle || 'yearly').slice(1)}: Rs. {(pkg.price || 0).toLocaleString()}</p>
                     </th>
                   ))}
                 </tr>

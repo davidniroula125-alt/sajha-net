@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiCheck, FiWifi, FiStar, FiFilter } from 'react-icons/fi';
-import { Section, SectionTitle, Badge, Button } from '../components/common/UIComponents';
 import { packageAPI } from '../services/api';
 
 export default function Packages() {
+  const getPriceDisplay = (pkg) => {
+    const cycle = pkg.billingCycle || 'yearly';
+    const suffix = cycle === 'monthly' ? '/mo' : cycle === 'quarterly' ? '/3mo' : cycle === 'halfYearly' ? '/6mo' : '/yr';
+    return `Rs. ${(pkg.price || 0).toLocaleString()}${suffix}`;
+  };
+
   const [packages, setPackages] = useState([]);
   const [type, setType] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -82,11 +87,7 @@ export default function Packages() {
               <FiWifi className="w-8 h-8 text-primary-500 mb-4" />
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{pkg.name}</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 uppercase mb-4">{pkg.type}</p>
-              <p className="text-3xl font-bold gradient-text mb-1">
-                NPR. {(pkg.price?.yearly || pkg.price?.monthly)?.toLocaleString()}
-                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">/yr</span>
-              </p>
-              <p className="text-xs text-success-600 dark:text-success-400 font-semibold mb-2">Only NPR {pkg.price?.monthly?.toLocaleString()}/month</p>
+              <p className="text-3xl font-bold gradient-text mb-1">{getPriceDisplay(pkg)}</p>
               <ul className="space-y-2 mb-6">
                 {pkg.features?.map((f, j) => (
                   <li key={j} className="flex items-center text-sm text-gray-600 dark:text-gray-400">

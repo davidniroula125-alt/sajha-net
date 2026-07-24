@@ -18,6 +18,12 @@ export default function Apply() {
     }).catch(() => setPackages([]));
   }, []);
 
+  const getPriceDisplay = (pkg) => {
+    const cycle = pkg.billingCycle || 'yearly';
+    const suffix = cycle === 'monthly' ? '/mo' : cycle === 'quarterly' ? '/3mo' : cycle === 'halfYearly' ? '/6mo' : '/yr';
+    return `Rs. ${(pkg.price || 0).toLocaleString()}${suffix}`;
+  };
+
   const provinces = [
     { value: 'Bagmati', label: 'Bagmati' }, { value: 'Gandaki', label: 'Gandaki' }, { value: 'Lumbini', label: 'Lumbini' },
     { value: 'Koshi', label: 'Koshi' }, { value: 'Madhesh', label: 'Madhesh' }, { value: 'Karnali', label: 'Karnali' }, { value: 'Sudurpashchim', label: 'Sudurpashchim' },
@@ -25,7 +31,7 @@ export default function Apply() {
 
   const packageOptions = [
     { value: '', label: 'Select Package' },
-    ...packages.map(p => ({ value: p._id, label: `${p.name} - NPR ${p.price?.yearly || p.price?.monthly} /yr` }))
+    ...packages.map(p => ({ value: p._id, label: `${p.name} - ${getPriceDisplay(p)}` }))
   ];
 
   const handleSubmit = async (e) => {

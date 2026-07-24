@@ -6,6 +6,12 @@ import { Section, SectionTitle } from '../../components/common/UIComponents';
 import { packageAPI } from '../../services/api';
 
 export default function BusinessSection() {
+  const getPriceDisplay = (pkg) => {
+    const cycle = pkg.billingCycle || 'yearly';
+    const suffix = cycle === 'monthly' ? '/mo' : cycle === 'quarterly' ? '/3mo' : cycle === 'halfYearly' ? '/6mo' : '/yr';
+    return `Rs. ${(pkg.price || 0).toLocaleString()}${suffix}`;
+  };
+
   const [plans, setPlans] = useState([]);
 
   useEffect(() => {
@@ -60,15 +66,15 @@ export default function BusinessSection() {
             >
               <p className="text-xs text-primary-500 font-medium uppercase">{plan.name}</p>
               <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">{plan.speed} Mbps</p>
-              <p className="text-sm text-gray-500 mt-1">NPR. {(plan.price?.yearly || plan.price?.monthly)?.toLocaleString()}/yr</p>
+              <p className="text-sm text-gray-500 mt-1">{getPriceDisplay(plan)}</p>
             </motion.div>
           )) : (
             <>
 {[
-              { speed: '100 Mbps', yearly: '5000', monthly: '500', label: 'Starter' },
-              { speed: '300 Mbps', yearly: '10000', monthly: '1000', label: 'Professional' },
-              { speed: '600 Mbps', yearly: '15000', monthly: '1500', label: 'Enterprise' },
-              { speed: '1 Gbps', yearly: '30000', monthly: '3000', label: 'Dedicated' },
+              { speed: '100 Mbps', price: 5000, billingCycle: 'yearly', label: 'Starter' },
+              { speed: '300 Mbps', price: 10000, billingCycle: 'yearly', label: 'Professional' },
+              { speed: '600 Mbps', price: 15000, billingCycle: 'yearly', label: 'Enterprise' },
+              { speed: '1 Gbps', price: 30000, billingCycle: 'yearly', label: 'Dedicated' },
             ].map((plan, i) => (
               <motion.div
                 key={i}
@@ -80,7 +86,7 @@ export default function BusinessSection() {
               >
                 <p className="text-xs text-primary-500 font-medium uppercase">{plan.label}</p>
                 <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">{plan.speed}</p>
-                <p className="text-sm text-gray-500 mt-1">NPR. {(plan.yearly || plan.monthly)?.toLocaleString()}/yr</p>
+                <p className="text-sm text-gray-500 mt-1">{getPriceDisplay(plan)}</p>
               </motion.div>
             ))}
             </>
