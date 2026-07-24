@@ -43,6 +43,9 @@ app.use('/api/', limiter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+const clientBuildPath = path.join(__dirname, '..', 'client', 'dist');
+app.use(express.static(clientBuildPath));
+
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sajhanet', {})
   .then(() => console.log('MongoDB Connected'))
   .catch(err => console.error('MongoDB Error:', err));
@@ -95,6 +98,10 @@ app.use('/api/feedbacks', require('./routes/feedbacks'));
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ success: false, message: 'Server Error' });
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'client', 'dist', 'index.html'));
 });
 
 const PORT = process.env.PORT || 5000;
