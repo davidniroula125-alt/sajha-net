@@ -98,12 +98,6 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const clientBuildPath = path.join(__dirname, '..', 'client', 'dist');
 const adminBuildPath = path.join(__dirname, '..', 'admin', 'dist');
