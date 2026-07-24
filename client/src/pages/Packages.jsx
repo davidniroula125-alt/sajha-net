@@ -83,10 +83,10 @@ export default function Packages() {
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{pkg.name}</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 uppercase mb-4">{pkg.type}</p>
               <p className="text-3xl font-bold gradient-text mb-1">
-                Rs. {(pkg.price?.yearly || pkg.price?.monthly)?.toLocaleString()}
+                NPR. {(pkg.price?.yearly || pkg.price?.monthly)?.toLocaleString()}
                 <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">/yr</span>
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Rs. {pkg.price?.monthly?.toLocaleString()}/month</p>
+              <p className="text-xs text-success-600 dark:text-success-400 font-semibold mb-2">Only NPR {pkg.price?.monthly?.toLocaleString()}/month</p>
               <ul className="space-y-2 mb-6">
                 {pkg.features?.map((f, j) => (
                   <li key={j} className="flex items-center text-sm text-gray-600 dark:text-gray-400">
@@ -97,6 +97,7 @@ export default function Packages() {
                 {pkg.includes?.mesh && <li className="flex items-center text-sm text-gray-600 dark:text-gray-400"><FiCheck className="w-4 h-4 text-success-500 mr-2" /> Mesh WiFi</li>}
                 {pkg.includes?.tv && <li className="flex items-center text-sm text-gray-600 dark:text-gray-400"><FiCheck className="w-4 h-4 text-success-500 mr-2" /> NetTV</li>}
                 {pkg.includes?.phone && <li className="flex items-center text-sm text-gray-600 dark:text-gray-400"><FiCheck className="w-4 h-4 text-success-500 mr-2" /> Telephone</li>}
+                {pkg.includes?.dropWire && <li className="flex items-center text-sm text-gray-600 dark:text-gray-400"><FiCheck className="w-4 h-4 text-success-500 mr-2" /> Free Drop Wire</li>}
               </ul>
               {pkg.idealFor && (
                 <div className="flex flex-wrap gap-1 mb-4">
@@ -105,7 +106,15 @@ export default function Packages() {
                   ))}
                 </div>
               )}
-              <Button to="/apply" variant={pkg.isPopular ? 'primary' : 'outline'} className="w-full text-center">Apply Now</Button>
+              <div className="flex gap-2 mb-3">
+                <Button to="/apply" variant={pkg.isPopular ? 'primary' : 'outline'} className="flex-1 text-center">Apply Now</Button>
+                <Button variant="outline" className="flex-1 text-center">Compare</Button>
+              </div>
+              {pkg.badge && (
+                <div className="text-center">
+                  <Badge variant={pkg.isRecommended ? 'primary' : 'secondary'} className="text-xs">{pkg.badge}</Badge>
+                </div>
+              )}
             </motion.div>
           ))}
         </div>

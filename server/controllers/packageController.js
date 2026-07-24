@@ -6,7 +6,7 @@ exports.getPackages = async (req, res) => {
     let query = { isActive: true };
     if (type) query.type = type;
     if (search) query.name = { $regex: search, $options: 'i' };
-    let packages = await Package.find(query).sort(sort || 'speed');
+    let packages = await Package.find(query).sort(sort || { sortOrder: 1, name: 1 });
     res.json({ success: true, packages });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
