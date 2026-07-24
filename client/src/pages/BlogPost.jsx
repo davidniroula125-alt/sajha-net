@@ -69,7 +69,7 @@ export default function BlogPost() {
           <motion.article initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <span className="text-sm font-medium text-primary-500 uppercase">{post.category}</span>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mt-2 mb-4">{post.title}</h1>
-            <div className="flex items-center space-x-4 text-sm text-gray-500 mb-8">
+            <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400 mb-8">
               <div className="flex items-center"><FiUser className="w-4 h-4 mr-1" />{post.author}</div>
               <div className="flex items-center"><FiCalendar className="w-4 h-4 mr-1" />{new Date(post.date).toLocaleDateString()}</div>
             </div>

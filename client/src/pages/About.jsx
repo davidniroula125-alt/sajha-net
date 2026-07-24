@@ -53,7 +53,7 @@ export default function About() {
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} viewport={{ once: true }} className="card p-6 text-center">
                 <s.icon className="w-8 h-8 text-primary-500 mx-auto mb-3" />
                 <p className="text-2xl font-bold gradient-text">{s.value}</p>
-                <p className="text-sm text-gray-500">{s.label}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{s.label}</p>
               </motion.div>
             ))}
           </div>
@@ -97,11 +97,11 @@ export default function About() {
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{member.name}</h3>
                 <p className="text-primary-500 font-medium text-sm mb-2">{member.position}</p>
-                {member.department && <p className="text-gray-500 text-xs mb-3">{member.department}</p>}
+                {member.department && <p className="text-gray-500 dark:text-gray-400 text-xs mb-3">{member.department}</p>}
                 {member.bio && <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{member.bio}</p>}
                 <div className="flex justify-center space-x-3">
-                  {member.email && <a href={`mailto:${member.email}`} className="text-gray-400 hover:text-primary-500"><FiMail className="w-4 h-4" /></a>}
-                  {member.linkedin && <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary-500"><FiLinkedin className="w-4 h-4" /></a>}
+                  {member.email && <a href={`mailto:${member.email}`} className="text-gray-400 dark:text-gray-500 hover:text-primary-500"><FiMail className="w-4 h-4" /></a>}
+                  {member.linkedin && <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-400 dark:text-gray-500 hover:text-primary-500"><FiLinkedin className="w-4 h-4" /></a>}
                 </div>
               </motion.div>
             ))}

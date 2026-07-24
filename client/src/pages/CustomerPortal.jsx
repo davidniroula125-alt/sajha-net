@@ -38,7 +38,7 @@ export default function CustomerPortal() {
                   <FiUser className="w-8 h-8 text-white" />
                 </div>
                 <p className="font-bold text-gray-900 dark:text-white">{user.name}</p>
-                <p className="text-sm text-gray-500">{user.email}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
               </div>
               <nav className="space-y-2">
                 {tabs.map(tab => (
@@ -72,7 +72,7 @@ export default function CustomerPortal() {
                     { label: 'Next Bill', value: 'Rs. 1,199', color: 'text-secondary-500' },
                   ].map((s, i) => (
                     <div key={i} className="card p-6">
-                      <p className="text-sm text-gray-500 mb-1">{s.label}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{s.label}</p>
                       <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
                     </div>
                   ))}
@@ -83,7 +83,7 @@ export default function CustomerPortal() {
                     {['Bill paid - Rs. 1,199', 'Connection installed', 'Account created'].map((a, i) => (
                       <div key={i} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
                         <span className="text-gray-600 dark:text-gray-400 text-sm">{a}</span>
-                        <span className="text-xs text-gray-500">2 days ago</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">2 days ago</span>
                       </div>
                     ))}
                   </div>
@@ -98,9 +98,9 @@ export default function CustomerPortal() {
                   <table className="w-full">
                     <thead className="bg-gray-50 dark:bg-gray-800">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Date</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Amount</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -112,7 +112,7 @@ export default function CustomerPortal() {
                         <tr key={i}>
                           <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{b.date}</td>
                           <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{b.amount}</td>
-                          <td className="px-6 py-4"><span className="px-2 py-1 bg-success-100 text-success-700 rounded-full text-xs">{b.status}</span></td>
+                          <td className="px-6 py-4"><span className="px-2 py-1 bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-300 rounded-full text-xs">{b.status}</span></td>
                         </tr>
                       ))}
                     </tbody>
@@ -126,8 +126,8 @@ export default function CustomerPortal() {
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Usage Statistics</h2>
                 <div className="card p-6">
                   <div className="text-center py-12">
-                    <p className="text-gray-500 mb-4">Usage tracking will be available soon.</p>
-                    <p className="text-sm text-gray-400">Your plan includes unlimited data with no caps.</p>
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">Usage tracking will be available soon.</p>
+                    <p className="text-sm text-gray-400 dark:text-gray-500">Your plan includes unlimited data with no caps.</p>
                   </div>
                 </div>
               </motion.div>

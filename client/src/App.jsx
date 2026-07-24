@@ -28,7 +28,7 @@ function App() {
         <ToastProvider>
           <Router>
             <ScrollToTop />
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 dark:text-gray-100">
               <Navbar />
               <main>
                 <Routes>
@@ -43,6 +43,8 @@ function App() {
                   <Route path="/about" element={<About />} />
                   <Route path="/portal/*" element={<CustomerPortal />} />
                   <Route path="/apply" element={<Apply />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
                 </Routes>
               </main>
               <Footer />

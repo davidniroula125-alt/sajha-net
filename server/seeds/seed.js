@@ -51,7 +51,7 @@ const seedData = async () => {
       password: 'password123',
       role: 'customer',
       phone: '+977-9841234567',
-      address: { province: 'Bagmati', district: 'Kathmandu', municipality: 'Kathmandu Metropolitan', ward: '10' }
+      address: { province: 'Koshi', district: 'Terhathum', municipality: 'Itahari', ward: '1' }
     });
 
     const packages = await Package.insertMany([
@@ -89,7 +89,7 @@ const seedData = async () => {
     ]);
 
     const testimonials = await Testimonial.insertMany([
-      { name: 'Aarav Sharma', location: 'Kathmandu', rating: 5, content: 'Best ISP in Nepal! Super fast speeds and excellent customer support. Highly recommended!', package: '100 Mbps', isFeatured: true, sortOrder: 1 },
+      { name: 'Aarav Sharma', location: 'Itahari', rating: 5, content: 'Best ISP in Nepal! Super fast speeds and excellent customer support. Highly recommended!', package: '100 Mbps', isFeatured: true, sortOrder: 1 },
       { name: 'Priya Thapa', location: 'Lalitpur', rating: 5, content: 'Switched from another ISP and the difference is night and day. Stable connection even during peak hours.', package: '200 Mbps', isFeatured: true, sortOrder: 2 },
       { name: 'Bikash Gurung', location: 'Pokhara', rating: 4, content: 'Great service for the price. Installation was quick and the team was professional.', package: '50 Mbps', isFeatured: true, sortOrder: 3 },
       { name: 'Sita Maharjan', location: 'Bhaktapur', rating: 5, content: 'Perfect for streaming and gaming. No more buffering! The mesh WiFi covers our entire home.', package: '300 Mbps', isFeatured: false, sortOrder: 4 },
@@ -97,9 +97,9 @@ const seedData = async () => {
     ]);
 
     const coverages = await Coverage.insertMany([
-      { province: 'Bagmati', district: 'Kathmandu', municipality: 'Kathmandu Metropolitan', ward: '1', estimatedSpeed: 'Up to 1 Gbps', servicesAvailable: ['Fiber', 'TV', 'Phone'] },
-      { province: 'Bagmati', district: 'Kathmandu', municipality: 'Kathmandu Metropolitan', ward: '10', estimatedSpeed: 'Up to 1 Gbps', servicesAvailable: ['Fiber', 'TV', 'Phone'] },
-      { province: 'Bagmati', district: 'Kathmandu', municipality: 'Kathmandu Metropolitan', ward: '20', estimatedSpeed: 'Up to 1 Gbps', servicesAvailable: ['Fiber', 'TV', 'Phone'] },
+      { province: 'Koshi', district: 'Terhathum', municipality: 'Itahari', ward: '1', estimatedSpeed: 'Up to 1 Gbps', servicesAvailable: ['Fiber', 'TV', 'Phone'] },
+      { province: 'Koshi', district: 'Terhathum', municipality: 'Itahari', ward: '5', estimatedSpeed: 'Up to 1 Gbps', servicesAvailable: ['Fiber', 'TV', 'Phone'] },
+      { province: 'Koshi', district: 'Terhathum', municipality: 'Itahari', ward: '10', estimatedSpeed: 'Up to 1 Gbps', servicesAvailable: ['Fiber', 'TV', 'Phone'] },
       { province: 'Bagmati', district: 'Lalitpur', municipality: 'Lalitpur Metropolitan', ward: '1', estimatedSpeed: 'Up to 1 Gbps', servicesAvailable: ['Fiber', 'TV', 'Phone'] },
       { province: 'Bagmati', district: 'Bhaktapur', municipality: 'Bhaktapur Municipality', ward: '1', estimatedSpeed: 'Up to 600 Mbps', servicesAvailable: ['Fiber', 'TV'] },
       { province: 'Gandaki', district: 'Kaski', municipality: 'Pokhara Metropolitan', ward: '1', estimatedSpeed: 'Up to 500 Mbps', servicesAvailable: ['Fiber', 'TV', 'Phone'] },
@@ -147,7 +147,7 @@ const seedData = async () => {
     ]);
 
     await Gallery.insertMany([
-      { title: 'Office Headquarters', image: '', category: 'office', description: 'Our modern office in Kathmandu', sortOrder: 1 },
+      { title: 'Office Headquarters', image: '', category: 'office', description: 'Our modern office in Itahari', sortOrder: 1 },
       { title: 'Network Operations Center', image: '', category: 'infrastructure', description: '24/7 NOC monitoring', sortOrder: 2 },
       { title: 'Team Building Event', image: '', category: 'events', description: 'Annual team outing 2024', sortOrder: 3 }
     ]);
@@ -163,7 +163,7 @@ const seedData = async () => {
       { key: 'contactPhone', value: '9705390890', category: 'contact' },
       { key: 'contactPhone2', value: '9709110186', category: 'contact' },
       { key: 'technicalPhone', value: '970910187', category: 'contact' },
-      { key: 'contactAddress', value: 'Kathmandu, Nepal', category: 'contact' },
+      { key: 'contactAddress', value: 'Itahari, Nepal', category: 'contact' },
       { key: 'facebook', value: 'https://facebook.com/sajhanet', category: 'social' },
       { key: 'instagram', value: 'https://instagram.com/sajhanet', category: 'social' },
       { key: 'twitter', value: 'https://twitter.com/sajhanet', category: 'social' },

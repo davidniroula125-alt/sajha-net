@@ -68,7 +68,7 @@ export default function Blog() {
                   <span className="text-xs font-medium text-primary-500 uppercase">{post.category}</span>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mt-2 mb-2 group-hover:text-primary-500 transition-colors">{post.title}</h3>
                   <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{post.excerpt}</p>
-                  <div className="flex items-center justify-between text-sm text-gray-500">
+                  <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                     <div className="flex items-center"><FiUser className="w-4 h-4 mr-1" />{post.author?.name || 'Sajha Net'}</div>
                     <div className="flex items-center"><FiCalendar className="w-4 h-4 mr-1" />{new Date(post.createdAt).toLocaleDateString()}</div>
                   </div>

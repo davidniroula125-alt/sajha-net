@@ -84,7 +84,7 @@ export default function Coverage() {
         <SectionTitle title="Areas We <span class='gradient-text'>Cover</span>" subtitle="Currently available in major cities and expanding" />
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { city: 'Kathmandu Valley', areas: ['Kathmandu', 'Lalitpur', 'Bhaktapur', 'Madhyapur Thimi'] },
+            { city: 'Itahari', areas: ['Itahari', 'Dharan', 'Biratnagar', 'Inaruwa'] },
             { city: 'Pokhara', areas: ['Pokhara Metropolitan', 'Lekhnath', 'Bharatpur'] },
             { city: 'Chitwan', areas: ['Bharatpur', 'Narayangarh', 'Ratnanagar'] },
           ].map((loc, i) => (

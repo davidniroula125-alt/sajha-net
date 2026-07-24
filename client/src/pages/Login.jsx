@@ -41,20 +41,20 @@ export default function Login() {
                 <FiUser className="w-8 h-8 text-white" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome Back</h1>
-              <p className="text-gray-500 mt-1">Sign in to your account</p>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">Sign in to your account</p>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="relative">
-                <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <input type="email" placeholder="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="input-field pl-10" required />
               </div>
               <div className="relative">
-                <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <input type="password" placeholder="Password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className="input-field pl-10" required />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Signing in...' : 'Sign In'}</Button>
             </form>
-            <p className="text-center text-sm text-gray-500 mt-6">
+            <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
               Don't have an account? <Link to="/register" className="text-primary-500 hover:underline">Sign Up</Link>
             </p>
           </motion.div>

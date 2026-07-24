@@ -17,7 +17,7 @@ export default function CoverageSection() {
   }, []);
 
   const districts = [...new Set(areas.map(a => a.district))];
-  const displayAreas = districts.length > 0 ? districts : ['Kathmandu Valley', 'Pokhara', 'Chitwan', 'Lalitpur'];
+  const displayAreas = districts.length > 0 ? districts : ['Itahari', 'Dharan', 'Biratnagar', 'Inaruwa'];
 
   return (
     <Section className="bg-gray-50 dark:bg-gray-800/50">

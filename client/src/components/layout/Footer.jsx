@@ -39,7 +39,7 @@ export default function Footer() {
   const [settings, setSettings] = useState({
     phone: '9705390890',
     email: 'sajhanet2025@gmail.com',
-    address: 'Kathmandu, Nepal',
+    address: 'Itahari, Nepal',
     facebook: '#',
     instagram: '#',
     linkedin: '#',

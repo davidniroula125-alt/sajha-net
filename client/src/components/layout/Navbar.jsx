@@ -38,15 +38,15 @@ export default function Navbar() {
       animate={{ y: 0 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg shadow-lg'
-          : 'bg-transparent'
+          ? 'bg-white dark:bg-gray-900 shadow-lg'
+          : 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           <Link to="/" className="flex items-center space-x-2">
             <img src="/uploads/logo.png" alt="Sajha Net" className="h-12 w-auto" onError={(e) => { e.target.src = '/uploads/logo.svg'; }} />
-            <span className={`text-xl font-bold hidden sm:block ${scrolled ? 'gradient-text' : 'text-white'}`}>Sajha Net</span>
+            <span className="text-xl font-bold hidden sm:block gradient-text">Sajha Net</span>
           </Link>
 
           <div className="hidden lg:flex items-center space-x-1">
@@ -56,12 +56,8 @@ export default function Navbar() {
                 to={link.path}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                   location.pathname === link.path
-                    ? scrolled
-                      ? 'text-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                      : 'text-white bg-white/10'
-                    : scrolled
-                      ? 'text-gray-700 dark:text-gray-300 hover:text-primary-500 hover:bg-gray-50 dark:hover:bg-gray-800'
-                      : 'text-white/80 hover:text-white hover:bg-white/10'
+                    ? 'text-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                    : 'text-gray-700 dark:text-gray-300 hover:text-primary-500 hover:bg-gray-50 dark:hover:bg-gray-800'
                 }`}
               >
                 {link.name}
@@ -70,8 +66,8 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center space-x-3">
-            <button onClick={toggleTheme} className={`p-2 rounded-lg transition-colors ${scrolled ? 'hover:bg-gray-100 dark:hover:bg-gray-800' : 'hover:bg-white/10'}`}>
-              {isDark ? <FiSun className="w-5 h-5 text-yellow-500" /> : <FiMoon className={`w-5 h-5 ${scrolled ? 'text-gray-600' : 'text-white'}`} />}
+            <button onClick={toggleTheme} className="p-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800">
+              {isDark ? <FiSun className="w-5 h-5 text-yellow-500" /> : <FiMoon className="w-5 h-5 text-gray-600 dark:text-gray-300" />}
             </button>
 
             {user ? (
@@ -80,8 +76,8 @@ export default function Navbar() {
                   <div className="w-8 h-8 gradient-bg rounded-full flex items-center justify-center">
                     <FiUser className="w-4 h-4 text-white" />
                   </div>
-                  <span className={`hidden md:block text-sm font-medium ${scrolled ? 'text-gray-700 dark:text-gray-300' : 'text-white'}`}>{user.name}</span>
-                  <FiChevronDown className="w-4 h-4 text-gray-500" />
+                  <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">{user.name}</span>
+                  <FiChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                 </button>
                 <AnimatePresence>
                   {showUserMenu && (
@@ -103,8 +99,8 @@ export default function Navbar() {
               </div>
             )}
 
-            <button onClick={() => setIsOpen(!isOpen)} className={`lg:hidden p-2 rounded-lg transition-colors ${scrolled ? 'hover:bg-gray-100 dark:hover:bg-gray-800' : 'hover:bg-white/10'}`}>
-              {isOpen ? <FiX className={`w-6 h-6 ${scrolled ? '' : 'text-white'}`} /> : <FiMenu className={`w-6 h-6 ${scrolled ? '' : 'text-white'}`} />}
+            <button onClick={() => setIsOpen(!isOpen)} className="lg:hidden p-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800">
+              {isOpen ? <FiX className="w-6 h-6 text-gray-700 dark:text-gray-300" /> : <FiMenu className="w-6 h-6 text-gray-700 dark:text-gray-300" />}
             </button>
           </div>
         </div>

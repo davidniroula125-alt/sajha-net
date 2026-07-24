@@ -47,7 +47,7 @@ export default function Register() {
                 <FiCheckCircle className="w-10 h-10 text-green-500" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Account Created!</h2>
-              <p className="text-gray-500 mb-6">Welcome to Sajha Net. Redirecting you to the homepage...</p>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">Welcome to Sajha Net. Redirecting you to the homepage...</p>
               <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-500 rounded-full animate-spin mx-auto" />
             </motion.div>
           </div>
@@ -66,32 +66,32 @@ export default function Register() {
                 <FiUser className="w-8 h-8 text-white" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create Account</h1>
-              <p className="text-gray-500 mt-1">Join Sajha Net today</p>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">Join Sajha Net today</p>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="relative">
-                <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <input type="text" placeholder="Full Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="input-field pl-10" required />
               </div>
               <div className="relative">
-                <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <input type="email" placeholder="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="input-field pl-10" required />
               </div>
               <div className="relative">
-                <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <input type="tel" placeholder="Phone" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="input-field pl-10" />
               </div>
               <div className="relative">
-                <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <input type="password" placeholder="Password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className="input-field pl-10" required />
               </div>
               <div className="relative">
-                <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <input type="password" placeholder="Confirm Password" value={form.confirmPassword} onChange={e => setForm({ ...form, confirmPassword: e.target.value })} className="input-field pl-10" required />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Creating...' : 'Create Account'}</Button>
             </form>
-            <p className="text-center text-sm text-gray-500 mt-6">
+            <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
               Already have an account? <Link to="/login" className="text-primary-500 hover:underline">Sign In</Link>
             </p>
           </motion.div>

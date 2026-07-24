@@ -129,4 +129,9 @@ export const complaintAPI = {
   getUserComplaints: () => API.get('/complaints/user'),
 };
 
+export const feedbackAPI = {
+  create: (data) => API.post('/feedbacks', data),
+  getUserFeedbacks: () => API.get('/feedbacks/user'),
+};
+
 export default API;

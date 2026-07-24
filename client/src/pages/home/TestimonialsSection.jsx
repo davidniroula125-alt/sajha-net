@@ -26,7 +26,7 @@ export default function TestimonialsSection() {
           >
             <div className="flex items-center mb-4">
               {[...Array(5)].map((_, j) => (
-                <FiStar key={j} className={`w-5 h-5 ${j < t.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
+                <FiStar key={j} className={`w-5 h-5 ${j < t.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300 dark:text-gray-600'}`} />
               ))}
             </div>
             <p className="text-gray-600 dark:text-gray-400 mb-4 italic">"{t.content}"</p>

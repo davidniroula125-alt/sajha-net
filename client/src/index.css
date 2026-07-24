@@ -80,8 +80,17 @@ html.dark .gradient-text {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
 }
 
+html.dark .card:hover {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+}
+
 html.dark {
   color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #111827;
+  color: #f3f4f6;
 }
 
 @keyframes float {

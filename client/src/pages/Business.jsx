@@ -65,7 +65,7 @@ export default function Business() {
               <Link to="/contact" className="block text-center py-3 gradient-bg text-white rounded-xl font-semibold hover:shadow-lg transition-all">Contact Sales</Link>
             </motion.div>
           ))}
-          {plans.length === 0 && <div className="col-span-3 py-12 text-center text-gray-400">No business plans available yet.</div>}
+          {plans.length === 0 && <div className="col-span-3 py-12 text-center text-gray-400 dark:text-gray-500">No business plans available yet.</div>}
         </div>
       </Section>
 
@@ -89,7 +89,7 @@ export default function Business() {
               </motion.div>
             );
           })}
-          {services.length === 0 && <div className="col-span-3 py-12 text-center text-gray-400">No services available yet.</div>}
+          {services.length === 0 && <div className="col-span-3 py-12 text-center text-gray-400 dark:text-gray-500">No services available yet.</div>}
         </div>
       </Section>
 

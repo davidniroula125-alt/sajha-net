@@ -14,7 +14,10 @@ export default function FAQSection() {
 
   return (
     <Section>
-      <SectionTitle title="Frequently Asked <span class='gradient-text'>Questions</span>" subtitle="Find answers to common questions" />
+      <div className="mb-12 text-center">
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">Frequently Asked <span className="gradient-text">Questions</span></h2>
+        <p className="mt-4 text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Find answers to common questions</p>
+      </div>
       <div className="max-w-3xl mx-auto space-y-4">
         {faqs.map((faq, i) => (
           <motion.div
@@ -31,9 +34,9 @@ export default function FAQSection() {
             >
               <span className="font-semibold text-gray-900 dark:text-white">{faq.question}</span>
               {openId === faq._id ? (
-                <FiChevronUp className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                <FiChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
               ) : (
-                <FiChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                <FiChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
               )}
             </button>
             <AnimatePresence>

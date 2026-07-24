@@ -45,13 +45,13 @@ export default function Contact() {
               { icon: FiPhone, title: 'Office', info: '9709110186', sub: 'Mon-Sat 9AM-6PM' },
               { icon: FiPhone, title: 'Technical', info: '970910187', sub: 'Technical Support' },
               { icon: FiMail, title: 'Email', info: 'sajhanet2025@gmail.com', sub: '24/7 Response' },
-              { icon: FiMapPin, title: 'Office', info: 'Kathmandu, Nepal', sub: 'Visit us anytime' },
+              { icon: FiMapPin, title: 'Office', info: 'Itahari, Nepal', sub: 'Visit us anytime' },
             ].map((c, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} className="card p-6">
                 <c.icon className="w-8 h-8 text-primary-500 mb-3" />
                 <h3 className="font-bold text-gray-900 dark:text-white">{c.title}</h3>
                 <p className="text-gray-700 dark:text-gray-300">{c.info}</p>
-                <p className="text-sm text-gray-500">{c.sub}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{c.sub}</p>
               </motion.div>
             ))}
           </div>
