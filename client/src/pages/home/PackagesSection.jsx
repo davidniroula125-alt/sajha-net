@@ -55,8 +55,8 @@ export default function PackagesSection() {
               <FiWifi className="w-6 h-6" />
               <h3 className="text-lg font-bold">Blazing Fast Internet Only</h3>
             </div>
-            <div className="p-6">
-              <table className="w-full">
+            <div className="p-4 sm:p-6 overflow-x-auto">
+              <table className="w-full min-w-[300px]">
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-600">
                     <th className="text-left py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Plan</th>
@@ -90,8 +90,8 @@ export default function PackagesSection() {
               <FiMonitor className="w-6 h-6" />
               <h3 className="text-lg font-bold">The Ultimate Bundle: Internet + IP TV</h3>
             </div>
-            <div className="p-6">
-              <table className="w-full">
+            <div className="p-4 sm:p-6 overflow-x-auto">
+              <table className="w-full min-w-[300px]">
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-600">
                     <th className="text-left py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Plan</th>
