@@ -97,6 +97,27 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+app.get('/api/update-blog-images', async (req, res) => {
+  if (process.env.SEED_SECRET !== 'sajha-seed-2026') return res.status(403).json({ message: 'forbidden' });
+  try {
+    const Blog = require('./models/Blog');
+    const images = {
+      'why-fiber-internet-future-itahari': 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=1200&q=80',
+      'choose-right-internet-package-home': 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1200&q=80',
+      'complete-guide-setup-home-wifi': 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&q=80',
+      'sajha-net-free-iptv-combo-packages': 'https://images.unsplash.com/photo-1574694238031-813a5b75e5d5?w=1200&q=80',
+      '5-tips-boost-internet-speed-home': 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&q=80',
+      'top-5-benefits-fiber-internet-students-itahari': 'https://images.unsplash.com/photo-1523040333635-83785dc02b3c?w=1200&q=80',
+    };
+    for (const [slug, image] of Object.entries(images)) {
+      await Blog.updateOne({ slug }, { $set: { featuredImage: image } });
+    }
+    res.json({ success: true, message: 'Blog images updated!' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const clientBuildPath = path.join(__dirname, '..', 'client', 'dist');

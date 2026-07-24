@@ -83,10 +83,10 @@ export default function Packages() {
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{pkg.name}</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 uppercase mb-4">{pkg.type}</p>
               <p className="text-3xl font-bold gradient-text mb-1">
-                Rs. {pkg.price?.monthly?.toLocaleString()}
-                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">/mo</span>
+                Rs. {(pkg.price?.monthly * 12)?.toLocaleString()}
+                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">/yr</span>
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Installation: Rs. {pkg.installationCharge?.toLocaleString() || 'Free'}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Rs. {pkg.price?.monthly?.toLocaleString()}/month</p>
               <ul className="space-y-2 mb-6">
                 {pkg.features?.map((f, j) => (
                   <li key={j} className="flex items-center text-sm text-gray-600 dark:text-gray-400">

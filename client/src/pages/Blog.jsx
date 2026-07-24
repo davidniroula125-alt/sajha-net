@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiCalendar, FiUser } from 'react-icons/fi';
+import { FiCalendar, FiUser, FiImage } from 'react-icons/fi';
 import { Section, SectionTitle, Input, Select } from '../components/common/UIComponents';
 import { blogAPI } from '../services/api';
 
@@ -32,6 +32,7 @@ export default function Blog() {
     { value: 'technology', label: 'Technology' },
     { value: 'offers', label: 'Offers' },
     { value: 'fiber-guide', label: 'Fiber Guide' },
+    { value: 'general', label: 'General' },
   ];
 
   return (
@@ -61,8 +62,14 @@ export default function Blog() {
           {posts.map((post, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <Link to={`/blog/${post.slug}`} className="card group block h-full">
-                <div className="aspect-video bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-900/20 dark:to-secondary-900/20 flex items-center justify-center">
-                  <span className="text-4xl font-bold gradient-text opacity-30">SN</span>
+                <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative overflow-hidden">
+                  {post.featuredImage ? (
+                    <img src={post.featuredImage} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-900/20 dark:to-secondary-900/20">
+                      <FiImage className="w-12 h-12 text-gray-400" />
+                    </div>
+                  )}
                 </div>
                 <div className="p-6">
                   <span className="text-xs font-medium text-primary-500 uppercase">{post.category}</span>
