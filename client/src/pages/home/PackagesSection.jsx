@@ -17,6 +17,11 @@ export default function PackagesSection() {
   const comboPkgs = packages.filter(p => p.type === 'combo').sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   const businessPkgs = packages.filter(p => p.type === 'business').sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
+  const getYearlyPrice = (pkg) => {
+    if (pkg.price?.yearly && pkg.price.yearly > 0) return pkg.price.yearly;
+    return (pkg.price?.monthly || 0) * 12;
+  };
+
   if (packages.length === 0) return null;
 
   return (
@@ -62,7 +67,7 @@ export default function PackagesSection() {
                   <tr className="border-b border-gray-200 dark:border-gray-600">
                     <th className="text-left py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Plan</th>
                     <th className="text-left py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Speed</th>
-                    <th className="text-right py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Price</th>
+                    <th className="text-right py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Price /yr</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -70,7 +75,7 @@ export default function PackagesSection() {
                     <tr key={pkg._id} className={`border-b border-gray-100 dark:border-gray-700 ${i === internetPkgs.length - 1 ? 'border-b-0' : ''}`}>
                       <td className="py-3 text-sm font-semibold text-gray-900 dark:text-white">{pkg.name}</td>
                       <td className="py-3 text-sm text-gray-600 dark:text-gray-400">{pkg.speed} Mbps</td>
-                      <td className="py-3 text-sm font-bold text-gray-900 dark:text-white text-right">Rs. {(pkg.price?.monthly * 12)?.toLocaleString()}/yr</td>
+                      <td className="py-3 text-sm font-bold text-gray-900 dark:text-white text-right">Rs. {getYearlyPrice(pkg)?.toLocaleString()}/yr</td>
                     </tr>
                   ))}
                 </tbody>
@@ -97,7 +102,7 @@ export default function PackagesSection() {
                   <tr className="border-b border-gray-200 dark:border-gray-600">
                     <th className="text-left py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Plan</th>
                     <th className="text-left py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Speed + TV</th>
-                    <th className="text-right py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Price</th>
+                    <th className="text-right py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Price /yr</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -105,7 +110,7 @@ export default function PackagesSection() {
                     <tr key={pkg._id} className={`border-b border-gray-100 dark:border-gray-700 ${i === comboPkgs.length - 1 ? 'border-b-0' : ''}`}>
                       <td className="py-3 text-sm font-semibold text-gray-900 dark:text-white">{pkg.name}</td>
                       <td className="py-3 text-sm text-gray-600 dark:text-gray-400">{pkg.speed} Mbps + IP TV</td>
-                      <td className="py-3 text-sm font-bold text-gray-900 dark:text-white text-right">Rs. {(pkg.price?.monthly * 12)?.toLocaleString()}/yr</td>
+                      <td className="py-3 text-sm font-bold text-gray-900 dark:text-white text-right">Rs. {getYearlyPrice(pkg)?.toLocaleString()}/yr</td>
                     </tr>
                   ))}
                 </tbody>
@@ -163,11 +168,11 @@ export default function PackagesSection() {
                         </tr>
                         <tr className="border-b border-gray-100 dark:border-gray-700">
                           <td className="py-3 text-sm text-gray-600 dark:text-gray-400">Price (Monthly)</td>
-                          <td className="py-3 text-sm font-bold text-gray-900 dark:text-white">Rs. {pkg.price?.monthly?.toLocaleString()}</td>
+                          <td className="py-3 text-sm font-bold text-gray-900 dark:text-white">Rs. {pkg.price?.monthly?.toLocaleString()}/mo</td>
                         </tr>
                         <tr className="border-b border-gray-100 dark:border-gray-700">
                           <td className="py-3 text-sm text-gray-600 dark:text-gray-400">Price (Yearly)</td>
-                          <td className="py-3 text-sm font-bold text-gray-900 dark:text-white">Rs. {(pkg.price?.monthly * 12)?.toLocaleString()}/yr</td>
+                          <td className="py-3 text-sm font-bold text-gray-900 dark:text-white">Rs. {getYearlyPrice(pkg)?.toLocaleString()}/yr</td>
                         </tr>
                         <tr className="border-b border-gray-100 dark:border-gray-700">
                           <td className="py-3 text-sm text-gray-600 dark:text-gray-400">Installation</td>
