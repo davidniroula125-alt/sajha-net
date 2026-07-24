@@ -164,7 +164,7 @@ const seedData = async () => {
       { key: 'contactPhone2', value: '9709110186', category: 'contact' },
       { key: 'technicalPhone', value: '970910187', category: 'contact' },
       { key: 'contactAddress', value: 'Itahari, Nepal', category: 'contact' },
-      { key: 'facebook', value: 'https://facebook.com/sajhanet', category: 'social' },
+      { key: 'facebook', value: 'https://www.facebook.com/sajhanet', category: 'social' },
       { key: 'instagram', value: 'https://instagram.com/sajhanet', category: 'social' },
       { key: 'twitter', value: 'https://twitter.com/sajhanet', category: 'social' },
       { key: 'youtube', value: 'https://youtube.com/sajhanet', category: 'social' },

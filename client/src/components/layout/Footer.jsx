@@ -40,7 +40,7 @@ export default function Footer() {
     phone: '9705390890',
     email: 'sajhanet2025@gmail.com',
     address: 'Itahari, Nepal',
-    facebook: '#',
+    facebook: 'https://www.facebook.com/sajhanet',
     instagram: '#',
     linkedin: '#',
     youtube: '#',
