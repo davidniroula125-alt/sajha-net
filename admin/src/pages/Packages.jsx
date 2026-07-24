@@ -32,7 +32,7 @@ export default function Packages() {
     if (pkg) {
 setForm({
          name: pkg.name || '', slug: pkg.slug || '', speed: pkg.speed || '', type: pkg.type || 'internet',
-         billingCycle: pkg.billingCycle || 'yearly', price: pkg.price || '',
+         billingCycle: pkg.billingCycle || 'yearly', price: typeof pkg.price === 'number' ? pkg.price : (pkg.price?.yearly || pkg.price?.monthly || 0),
          installationCharge: pkg.installationCharge || '', image: pkg.image || '', badge: pkg.badge || '',
          features: pkg.features?.join(', ') || '', idealFor: pkg.idealFor?.join(', ') || '', highlights: pkg.highlights?.join(', ') || '',
          includes: { router: pkg.includes?.router || false, mesh: pkg.includes?.mesh || false, phone: pkg.includes?.phone || false, tv: pkg.includes?.tv || false, ott: pkg.includes?.ott?.join(', ') || '', unlimitedData: pkg.includes?.unlimitedData !== false, dropWire: pkg.includes?.dropWire || false },
