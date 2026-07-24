@@ -43,8 +43,12 @@ app.use('/api/', limiter);
 
 console.log('MONGODB_URI set:', !!process.env.MONGODB_URI);
 console.log('JWT_SECRET set:', !!process.env.JWT_SECRET);
+console.log('MONGODB_URI length:', process.env.MONGODB_URI ? process.env.MONGODB_URI.length : 0);
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sajhanet', {})
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sajhanet', {
+  serverSelectionTimeoutMS: 15000,
+  heartbeatFrequencyMS: 30000
+})
   .then(() => console.log('MongoDB Connected'))
   .catch(err => console.error('MongoDB Error:', err.message));
 
@@ -94,11 +98,16 @@ app.use('/api/complaints', require('./routes/complaints'));
 app.use('/api/feedbacks', require('./routes/feedbacks'));
 
 app.get('/api/health', (req, res) => {
+  const state = mongoose.connection.readyState;
+  const states = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
   res.json({ 
     status: 'ok',
     mongodb: !!process.env.MONGODB_URI,
     jwt: !!process.env.JWT_SECRET,
-    nodeEnv: process.env.NODE_ENV
+    nodeEnv: process.env.NODE_ENV,
+    mongoState: states[state] || state,
+    uriLength: process.env.MONGODB_URI ? process.env.MONGODB_URI.length : 0,
+    uriHost: process.env.MONGODB_URI ? process.env.MONGODB_URI.split('@')[1] : 'none'
   });
 });
 
