@@ -1,0 +1,190 @@
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+require('dotenv').config();
+
+const User = require('../models/User');
+const Package = require('../models/Package');
+const Service = require('../models/Service');
+const FAQ = require('../models/FAQ');
+const Testimonial = require('../models/Testimonial');
+const Coverage = require('../models/Coverage');
+const Hero = require('../models/Hero');
+const Banner = require('../models/Banner');
+const Employee = require('../models/Employee');
+const Announcement = require('../models/Announcement');
+const TeamMember = require('../models/TeamMember');
+const Gallery = require('../models/Gallery');
+const Notice = require('../models/Notice');
+const Setting = require('../models/Setting');
+
+const seedData = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sajhanet');
+    console.log('MongoDB Connected for seeding...');
+
+    await User.deleteMany();
+    await Package.deleteMany();
+    await Service.deleteMany();
+    await FAQ.deleteMany();
+    await Testimonial.deleteMany();
+    await Coverage.deleteMany();
+    await Hero.deleteMany();
+    await Banner.deleteMany();
+    await Employee.deleteMany();
+    await Announcement.deleteMany();
+    await TeamMember.deleteMany();
+    await Gallery.deleteMany();
+    await Notice.deleteMany();
+    await Setting.deleteMany();
+
+    const admin = await User.create({
+      name: 'Admin',
+      email: 'admin@sajhanet2025@gmail.com',
+      password: 'admin123',
+      role: 'admin',
+      phone: '+977-9801234567'
+    });
+
+    const customer = await User.create({
+      name: 'Ram Shrestha',
+      email: 'ram@example.com',
+      password: 'password123',
+      role: 'customer',
+      phone: '+977-9841234567',
+      address: { province: 'Bagmati', district: 'Kathmandu', municipality: 'Kathmandu Metropolitan', ward: '10' }
+    });
+
+    const packages = await Package.insertMany([
+      { name: 'Bronze', speed: 80, type: 'internet', price: { monthly: 6500, quarterly: 0, halfYearly: 0, yearly: 0 }, installationCharge: 0, features: ['80 Mbps Speed', 'Fiber Connection', '99.9% Uptime', '24x7 Support', 'FREE Router + Drop Wire', 'No Deposit Required'], includes: { router: true, unlimitedData: true }, idealFor: ['Browsing', 'Social Media', 'Light Streaming'], highlights: ['No Deposit', 'Free Router', 'Free Drop Wire'], isPopular: false, sortOrder: 1 },
+      { name: 'Silver', speed: 100, type: 'internet', price: { monthly: 7500, quarterly: 0, halfYearly: 0, yearly: 0 }, installationCharge: 0, features: ['100 Mbps Speed', 'Fiber Connection', '99.9% Uptime', '24x7 Support', 'FREE Router + Drop Wire', 'No Deposit Required'], includes: { router: true, unlimitedData: true }, idealFor: ['Family', 'Streaming', 'HD Video'], highlights: ['No Deposit', 'Free Router', 'Fast Speed'], isPopular: true, sortOrder: 2 },
+      { name: 'Gold', speed: 150, type: 'internet', price: { monthly: 8500, quarterly: 0, halfYearly: 0, yearly: 0 }, installationCharge: 0, features: ['150 Mbps Speed', 'Fiber Connection', '99.9% Uptime', '24x7 Support', 'FREE Router + Drop Wire', 'No Deposit Required'], includes: { router: true, unlimitedData: true }, idealFor: ['Multiple Devices', 'HD Streaming', 'Gaming'], highlights: ['No Deposit', 'Free Router', 'High Speed'], isPopular: false, sortOrder: 3 },
+      { name: 'Platinum', speed: 200, type: 'internet', price: { monthly: 9500, quarterly: 0, halfYearly: 0, yearly: 0 }, installationCharge: 0, features: ['200 Mbps Speed', 'Fiber Connection', '99.9% Uptime', '24x7 Support', 'FREE Router + Drop Wire', 'No Deposit Required'], includes: { router: true, unlimitedData: true }, idealFor: ['Power Users', '4K Streaming', 'Multiple Users'], highlights: ['No Deposit', 'Free Router', 'Premium Speed'], isPopular: false, sortOrder: 4 },
+      { name: 'Essential', speed: 80, type: 'combo', price: { monthly: 8500, quarterly: 0, halfYearly: 0, yearly: 0 }, installationCharge: 0, features: ['80 Mbps Internet + IP TV', 'Fiber Connection', '99.9% Uptime', '24x7 Support', 'FREE Router + Drop Wire', 'No Deposit Required'], includes: { router: true, tv: true, unlimitedData: true }, idealFor: ['Entertainment', 'Family', 'TV + Internet'], highlights: ['Internet + IPTV', 'No Deposit', 'Free Router'], isPopular: false, sortOrder: 5 },
+      { name: 'Enhanced', speed: 150, type: 'combo', price: { monthly: 9500, quarterly: 0, halfYearly: 0, yearly: 0 }, installationCharge: 0, features: ['150 Mbps Internet + IP TV', 'Fiber Connection', '99.9% Uptime', '24x7 Support', 'FREE Router + Drop Wire', 'No Deposit Required'], includes: { router: true, tv: true, unlimitedData: true }, idealFor: ['Family Entertainment', 'HD Streaming + TV'], highlights: ['Internet + IPTV', 'No Deposit', 'High Speed'], isPopular: true, sortOrder: 6 },
+      { name: 'Premium', speed: 200, type: 'combo', price: { monthly: 10500, quarterly: 0, halfYearly: 0, yearly: 0 }, installationCharge: 0, features: ['200 Mbps Internet + IP TV', 'Fiber Connection', '99.9% Uptime', '24x7 Support', 'FREE Router + Drop Wire', 'No Deposit Required'], includes: { router: true, tv: true, unlimitedData: true }, idealFor: ['Ultimate Bundle', 'Power Users', '4K + TV'], highlights: ['Internet + IPTV', 'No Deposit', 'Ultimate Speed'], isPopular: false, sortOrder: 7 },
+      { name: 'Business Starter', speed: 100, type: 'business', price: { monthly: 7500, quarterly: 0, halfYearly: 0, yearly: 0 }, installationCharge: 0, features: ['100 Mbps Dedicated', 'Fiber Connection', '99.9% Uptime SLA', '24x7 Priority Support', 'Static IP'], includes: { router: true, unlimitedData: true }, idealFor: ['Small Business', 'Startups'], highlights: ['SLA Guarantee', 'Priority Support', 'Static IP'], isPopular: false, sortOrder: 8 },
+      { name: 'Business Pro', speed: 300, type: 'business', price: { monthly: 15000, quarterly: 0, halfYearly: 0, yearly: 0 }, installationCharge: 0, features: ['300 Mbps Dedicated', 'Fiber Connection', '99.99% Uptime SLA', '24x7 Priority Support', 'Static IP', 'Managed WiFi'], includes: { router: true, mesh: true, unlimitedData: true }, idealFor: ['Growing Business', 'Offices'], highlights: ['Enterprise SLA', 'Managed WiFi', 'Dedicated Support'], isPopular: false, sortOrder: 9 }
+    ]);
+
+    const services = await Service.insertMany([
+      { name: 'Fiber Internet', slug: 'fiber-internet', description: 'High-speed fiber optic internet for homes and businesses.', shortDescription: 'Ultra-fast fiber connectivity', icon: 'FaWifi', features: ['Speeds up to 1 Gbps', '99.9% Uptime', 'Unlimited Data', 'Free Router'], category: 'internet', sortOrder: 1 },
+      { name: 'Business Internet', slug: 'business-internet', description: 'Dedicated internet solutions for businesses with SLA guarantees.', shortDescription: 'Enterprise-grade connectivity', icon: 'FaBuilding', features: ['Dedicated Bandwidth', 'Static IP', 'SLA Guarantee', '24/7 Support'], category: 'business', sortOrder: 2 },
+      { name: 'NetTV', slug: 'nettv', description: 'IPTV service with 200+ channels including HD and 4K.', shortDescription: 'Premium IPTV service', icon: 'FaTv', features: ['200+ Channels', 'HD & 4K Content', 'Catch-up TV', 'Multi-screen'], category: 'entertainment', sortOrder: 3 },
+      { name: 'Mesh WiFi', slug: 'mesh-wifi', description: 'Whole-home WiFi coverage with mesh technology.', shortDescription: 'Seamless home coverage', icon: 'FaHome', features: ['Whole-home Coverage', 'Easy Setup', 'Parental Controls', 'Guest Network'], category: 'addons', sortOrder: 4 },
+      { name: 'Cloud Services', slug: 'cloud-services', description: 'Cloud storage and computing solutions.', shortDescription: 'Cloud infrastructure', icon: 'FaCloud', features: ['Cloud Storage', 'Backup Solutions', 'Scalable Resources', 'Data Security'], category: 'enterprise', sortOrder: 5 },
+      { name: 'Web Hosting', slug: 'web-hosting', description: 'Reliable web hosting with 99.9% uptime.', shortDescription: 'Fast & reliable hosting', icon: 'FaServer', features: ['99.9% Uptime', 'Free SSL', 'cPanel Access', '24/7 Support'], category: 'services', sortOrder: 6 },
+      { name: 'VPN Services', slug: 'vpn-services', description: 'Secure VPN for business and personal use.', shortDescription: 'Secure connectivity', icon: 'FaShieldAlt', features: ['Encrypted Connection', 'Remote Access', 'Multiple Protocols', 'No Logs'], category: 'enterprise', sortOrder: 7 },
+      { name: 'CCTV Networking', slug: 'cctv-networking', description: 'Professional CCTV installation and networking.', shortDescription: 'Security solutions', icon: 'FaVideo', features: ['HD Cameras', 'Remote Monitoring', 'Night Vision', 'Cloud Storage'], category: 'services', sortOrder: 8 }
+    ]);
+
+    const faqs = await FAQ.insertMany([
+      { question: 'How do I apply for a new connection?', answer: 'You can apply online through our website or visit your nearest Sajha Net office. Fill out the application form and our team will contact you within 24 hours.', category: 'installation', sortOrder: 1 },
+      { question: 'What is the installation process?', answer: 'After application approval, our technical team will visit your location for fiber installation. The process typically takes 1-3 days depending on your area.', category: 'installation', sortOrder: 2 },
+      { question: 'What speeds are available?', answer: 'We offer speeds from 50 Mbps to 1 Gbps. Choose the plan that best fits your needs. You can upgrade or downgrade anytime.', category: 'packages', sortOrder: 3 },
+      { question: 'Is there a data limit?', answer: 'No, all our plans come with unlimited data. We believe in fair and transparent internet access.', category: 'packages', sortOrder: 4 },
+      { question: 'How do I pay my bill?', answer: 'You can pay through eSewa, Khalti, bank transfer, or visit our office for cash payment. Online payment is available 24/7.', category: 'billing', sortOrder: 5 },
+      { question: 'What should I do if my internet is slow?', answer: 'First, restart your router. If the issue persists, check our troubleshooting guide or contact our support team at 9705390890.', category: 'technical', sortOrder: 6 },
+      { question: 'How do I report a complaint?', answer: 'You can submit a complaint through our support page, call us at 9705390890, or use our live chat feature.', category: 'support', sortOrder: 7 },
+      { question: 'What is the minimum contract period?', answer: 'We offer both monthly and annual plans. Annual plans come with significant discounts. There is no lock-in period for monthly plans.', category: 'billing', sortOrder: 8 }
+    ]);
+
+    const testimonials = await Testimonial.insertMany([
+      { name: 'Aarav Sharma', location: 'Kathmandu', rating: 5, content: 'Best ISP in Nepal! Super fast speeds and excellent customer support. Highly recommended!', package: '100 Mbps', isFeatured: true, sortOrder: 1 },
+      { name: 'Priya Thapa', location: 'Lalitpur', rating: 5, content: 'Switched from another ISP and the difference is night and day. Stable connection even during peak hours.', package: '200 Mbps', isFeatured: true, sortOrder: 2 },
+      { name: 'Bikash Gurung', location: 'Pokhara', rating: 4, content: 'Great service for the price. Installation was quick and the team was professional.', package: '50 Mbps', isFeatured: true, sortOrder: 3 },
+      { name: 'Sita Maharjan', location: 'Bhaktapur', rating: 5, content: 'Perfect for streaming and gaming. No more buffering! The mesh WiFi covers our entire home.', package: '300 Mbps', isFeatured: false, sortOrder: 4 },
+      { name: 'Rajan Das', location: 'Chitwan', rating: 5, content: 'As a business owner, I need reliable internet. Sajha Net delivers 99.99% uptime as promised.', package: 'Business 600 Mbps', isFeatured: true, sortOrder: 5 }
+    ]);
+
+    const coverages = await Coverage.insertMany([
+      { province: 'Bagmati', district: 'Kathmandu', municipality: 'Kathmandu Metropolitan', ward: '1', estimatedSpeed: 'Up to 1 Gbps', servicesAvailable: ['Fiber', 'TV', 'Phone'] },
+      { province: 'Bagmati', district: 'Kathmandu', municipality: 'Kathmandu Metropolitan', ward: '10', estimatedSpeed: 'Up to 1 Gbps', servicesAvailable: ['Fiber', 'TV', 'Phone'] },
+      { province: 'Bagmati', district: 'Kathmandu', municipality: 'Kathmandu Metropolitan', ward: '20', estimatedSpeed: 'Up to 1 Gbps', servicesAvailable: ['Fiber', 'TV', 'Phone'] },
+      { province: 'Bagmati', district: 'Lalitpur', municipality: 'Lalitpur Metropolitan', ward: '1', estimatedSpeed: 'Up to 1 Gbps', servicesAvailable: ['Fiber', 'TV', 'Phone'] },
+      { province: 'Bagmati', district: 'Bhaktapur', municipality: 'Bhaktapur Municipality', ward: '1', estimatedSpeed: 'Up to 600 Mbps', servicesAvailable: ['Fiber', 'TV'] },
+      { province: 'Gandaki', district: 'Kaski', municipality: 'Pokhara Metropolitan', ward: '1', estimatedSpeed: 'Up to 500 Mbps', servicesAvailable: ['Fiber', 'TV', 'Phone'] },
+      { province: 'Lumbini', district: 'Rupandehi', municipality: 'Bhairahawa', ward: '1', estimatedSpeed: 'Up to 300 Mbps', servicesAvailable: ['Fiber', 'TV'] },
+      { province: 'Koshi', district: 'Jhapa', municipality: 'Birtamod', ward: '1', estimatedSpeed: 'Up to 200 Mbps', servicesAvailable: ['Fiber'] }
+    ]);
+
+    // New CMS seed data
+    await Hero.create({
+      title: 'Super Fast Fiber Internet & HD TV',
+      subtitle: 'No Deposit Required! FREE Router + Drop Wire Included with Every Plan!',
+      badge: "Connect at the speed of life",
+      ctaButtons: [
+        { text: 'Get Connection Now', url: '/apply', primary: true },
+        { text: 'View Packages', url: '/packages', primary: false }
+      ],
+      stats: [
+        { label: 'No Deposit', value: 'Required!', icon: 'shield' },
+        { label: 'FREE Router', value: 'Included', icon: 'wifi' },
+        { label: '24/7 Support', value: 'Always Available', icon: 'clock' }
+      ]
+    });
+
+    await Banner.insertMany([
+      { title: 'No Deposit Required!', description: 'Get connected without any deposit. FREE Router + Drop Wire included with every plan!', type: 'offer', position: 'homepage', isActive: true, sortOrder: 1 },
+      { title: 'Super Fast Fiber Internet & HD TV', description: 'Internet + IP TV combo plans starting at Rs. 8500/month. IP TV Service FREE with 5G Router for only Rs. 1000!', type: 'promo', position: 'homepage', isActive: true, sortOrder: 2 },
+      { title: 'Get Connected Today!', description: 'Call us at 9705390890 or visit our office. Quick installation within 24-48 hours.', type: 'promo', position: 'homepage', isActive: true, sortOrder: 3 }
+    ]);
+
+    await Employee.insertMany([
+      { name: 'Suresh Adhikari', email: 'suresh@sajhanet2025@gmail.com', phone: '+977-9801111111', department: 'Technical', role: 'admin', position: 'CTO', isActive: true },
+      { name: 'Maya Tamang', email: 'maya@sajhanet2025@gmail.com', phone: '+977-9802222222', department: 'Support', role: 'support', position: 'Support Manager', isActive: true },
+      { name: 'Ramesh Karki', email: 'ramesh@sajhanet2025@gmail.com', phone: '+977-9803333333', department: 'Sales', role: 'sales', position: 'Sales Executive', isActive: true }
+    ]);
+
+    await Announcement.insertMany([
+      { title: 'Scheduled Maintenance', content: 'We will be performing maintenance on our network infrastructure on Saturday night from 2 AM to 5 AM. Internet services may be briefly interrupted.', type: 'maintenance', isPopup: false, isActive: true },
+      { title: 'Festival Season Offer', content: 'Celebrate Dashain with 25% off on all new connections! Offer valid till October 31st.', type: 'offer', isPopup: true, isActive: true }
+    ]);
+
+    await TeamMember.insertMany([
+      { name: 'Rajesh Gurung', position: 'CEO & Founder', department: 'Executive', bio: 'Visionary leader with 15+ years in telecom industry.', email: 'rajesh@sajhanet2025@gmail.com', sortOrder: 1, isActive: true },
+      { name: 'Anita Sharma', position: 'Head of Operations', department: 'Operations', bio: 'Expert in network operations and infrastructure.', email: 'anita@sajhanet2025@gmail.com', sortOrder: 2, isActive: true },
+      { name: 'Deepak Magar', position: 'Head of Sales', department: 'Sales', bio: 'Driving business growth through strategic partnerships.', email: 'deepak@sajhanet2025@gmail.com', sortOrder: 3, isActive: true }
+    ]);
+
+    await Gallery.insertMany([
+      { title: 'Office Headquarters', image: '', category: 'office', description: 'Our modern office in Kathmandu', sortOrder: 1 },
+      { title: 'Network Operations Center', image: '', category: 'infrastructure', description: '24/7 NOC monitoring', sortOrder: 2 },
+      { title: 'Team Building Event', image: '', category: 'events', description: 'Annual team outing 2024', sortOrder: 3 }
+    ]);
+
+    await Notice.insertMany([
+      { title: 'New Coverage Area', content: 'We have expanded our network to cover new areas in Lalitpur. Check our coverage page for details.', type: 'update', isActive: true },
+      { title: 'Speed Upgrade Program', content: 'Existing customers can now upgrade their speeds at discounted rates. Contact support for details.', type: 'notice', isActive: true }
+    ]);
+
+    await Setting.insertMany([
+      { key: 'companyName', value: 'Sajha Net Pvt. Ltd.', category: 'general' },
+      { key: 'contactEmail', value: 'sajhanet2025@gmail.com', category: 'contact' },
+      { key: 'contactPhone', value: '9705390890', category: 'contact' },
+      { key: 'contactPhone2', value: '9709110186', category: 'contact' },
+      { key: 'technicalPhone', value: '970910187', category: 'contact' },
+      { key: 'contactAddress', value: 'Kathmandu, Nepal', category: 'contact' },
+      { key: 'facebook', value: 'https://facebook.com/sajhanet', category: 'social' },
+      { key: 'instagram', value: 'https://instagram.com/sajhanet', category: 'social' },
+      { key: 'twitter', value: 'https://twitter.com/sajhanet', category: 'social' },
+      { key: 'youtube', value: 'https://youtube.com/sajhanet', category: 'social' },
+      { key: 'ctaTitle', value: 'Get Connected Today!', category: 'cta' },
+      { key: 'ctaDescription', value: 'No Deposit Required! FREE Router + Drop Wire included with every plan. Switch to Sajha Net today.', category: 'cta' },
+      { key: 'ctaButtonText', value: 'Get Connection Now', category: 'cta' },
+      { key: 'ctaButtonUrl', value: '/apply', category: 'cta' },
+      { key: 'footerDescription', value: "Nepal's leading internet service provider offering high-speed fiber internet, IPTV, and enterprise solutions. Connect at the speed of life.", category: 'footer' },
+      { key: 'copyrightText', value: `© ${new Date().getFullYear()} Sajha Net Pvt. Ltd. All rights reserved.`, category: 'footer' },
+      { key: 'tagline', value: 'Connect at the speed of life', category: 'general' }
+    ]);
+
+    console.log('Seed data created successfully!');
+    console.log('Admin credentials: admin@sajhanet2025@gmail.com / admin123');
+    console.log('Customer credentials: ram@example.com / password123');
+    process.exit(0);
+  } catch (error) {
+    console.error('Seed error:', error);
+    process.exit(1);
+  }
+};
+
+seedData();
