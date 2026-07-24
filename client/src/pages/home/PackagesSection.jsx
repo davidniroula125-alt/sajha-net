@@ -18,9 +18,10 @@ export default function PackagesSection() {
   const businessPkgs = packages.filter(p => p.type === 'business').sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
   const getPriceDisplay = (pkg) => {
+    const price = typeof pkg.price === 'number' ? pkg.price : (pkg.price?.yearly || pkg.price?.monthly || 0);
     const cycle = pkg.billingCycle || 'yearly';
     const suffix = cycle === 'monthly' ? '/mo' : cycle === 'quarterly' ? '/3mo' : cycle === 'halfYearly' ? '/6mo' : '/yr';
-    return `NPR. ${(pkg.price || 0).toLocaleString()}${suffix}`;
+    return `NPR. ${price.toLocaleString()}${suffix}`;
   };
 
   if (packages.length === 0) return null;

@@ -7,9 +7,10 @@ import { packageAPI } from '../../services/api';
 
 export default function BusinessSection() {
   const getPriceDisplay = (pkg) => {
+    const price = typeof pkg.price === 'number' ? pkg.price : (pkg.price?.yearly || pkg.price?.monthly || 0);
     const cycle = pkg.billingCycle || 'yearly';
     const suffix = cycle === 'monthly' ? '/mo' : cycle === 'quarterly' ? '/3mo' : cycle === 'halfYearly' ? '/6mo' : '/yr';
-    return `Rs. ${(pkg.price || 0).toLocaleString()}${suffix}`;
+    return `Rs. ${price.toLocaleString()}${suffix}`;
   };
 
   const [plans, setPlans] = useState([]);

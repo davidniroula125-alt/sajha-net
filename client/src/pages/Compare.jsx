@@ -58,6 +58,10 @@ export default function Compare() {
       if (cycleLabels[val]) return cycleLabels[val];
       return val;
     }
+    if (typeof val === 'object') {
+      const price = val.yearly || val.monthly || 0;
+      return `Rs. ${price.toLocaleString()}`;
+    }
     return String(val);
   };
 
