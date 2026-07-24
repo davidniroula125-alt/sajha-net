@@ -18,8 +18,7 @@ export default function PackagesSection() {
   const businessPkgs = packages.filter(p => p.type === 'business').sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
   const getYearlyPrice = (pkg) => {
-    if (pkg.price?.yearly && pkg.price.yearly > 0) return pkg.price.yearly;
-    return (pkg.price?.monthly || 0) * 12;
+    return pkg.price?.yearly || pkg.price?.monthly || 0;
   };
 
   if (packages.length === 0) return null;
