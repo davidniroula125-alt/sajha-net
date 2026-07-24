@@ -3,11 +3,14 @@
   "version": "1.0.0",
   "description": "Sajha Net ISP Website",
   "scripts": {
-    "install-all": "cd server && npm install && cd ../client && npm install && cd ../admin && npm install",
-    "build": "cd client && npm install && npm run build && cd ../admin && npm install && npm run build",
+    "install-server": "cd server && npm install",
+    "install-client": "cd client && npm install",
+    "install-admin": "cd admin && npm install",
+    "build-client": "cd client && npm run build",
+    "build-admin": "cd admin && npm run build",
+    "build": "npm run build-client && npm run build-admin",
     "start": "cd server && node server.js",
-    "seed": "cd server && node seeds/seed.js",
-    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\" \"cd admin && npm run dev\""
+    "seed": "cd server && node seeds/seed.js"
   },
   "engines": {
     "node": ">=18.0.0"

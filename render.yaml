@@ -3,7 +3,7 @@ services:
     name: sajha-net
     runtime: node
     plan: free
-    buildCommand: cd client && npm install && npm run build && cd ../admin && npm install && npm run build
+    buildCommand: npm install && cd client && npm install && npm run build && cd ../admin && npm install && npm run build
     startCommand: cd server && node server.js
     envVars:
       - key: MONGODB_URI
@@ -12,5 +12,3 @@ services:
         generateValue: true
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 10000
