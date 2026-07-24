@@ -51,7 +51,7 @@ export default function Business() {
               {plan.isPopular && <span className="absolute top-4 right-4 gradient-bg text-white text-xs font-bold px-3 py-1 rounded-full">Recommended</span>}
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{plan.name}</h3>
               <p className="text-primary-500 font-semibold mb-4">{plan.speed} Mbps Dedicated</p>
-              <p className="text-3xl font-bold gradient-text mb-6">Rs. {plan.price?.monthly?.toLocaleString()}<span className="text-sm text-gray-500 font-normal">/mo</span></p>
+              <p className="text-3xl font-bold gradient-text mb-6">NPR. {(pkg.price?.yearly || pkg.price?.monthly)?.toLocaleString()}<span className="text-sm text-gray-500 font-normal">/yr</span></p>
               <ul className="space-y-3 mb-8">
                 {plan.features?.map((f, j) => (
                   <li key={j} className="flex items-center text-sm text-gray-600 dark:text-gray-400">

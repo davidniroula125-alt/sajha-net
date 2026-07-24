@@ -10,6 +10,7 @@ import Chatbot from './components/common/Chatbot';
 import ScrollToTop from './components/common/ScrollToTop';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Compare from './pages/Compare';
 import Apply from './pages/Apply';
 import Contact from './pages/Contact';
 import About from './pages/About';
@@ -34,6 +35,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/packages" element={<Packages />} />
+                  <Route path="/compare" element={<Compare />} />
                   <Route path="/business" element={<Business />} />
                   <Route path="/coverage" element={<Coverage />} />
                   <Route path="/support" element={<Support />} />

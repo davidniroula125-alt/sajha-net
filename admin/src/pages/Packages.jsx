@@ -66,7 +66,7 @@ export default function Packages() {
         highlights: form.highlights ? form.highlights.split(',').map(f => f.trim()).filter(Boolean) : [],
         includes: { router: form.includes.router, mesh: form.includes.mesh, phone: form.includes.phone, tv: form.includes.tv, unlimitedData: form.includes.unlimitedData, dropWire: form.includes.dropWire, ott: form.includes.ott ? form.includes.ott.split(',').map(f => f.trim()).filter(Boolean) : [] },
         isPopular: form.isPopular, isRecommended: form.isRecommended, sortOrder: Number(form.sortOrder) || 0,
-        description: form.description || '', shortDescription: form.shortDescription || '',
+        description: form.description || '',
         seo: { title: form.seo?.title || '', description: form.seo?.description || '', keywords: form.seo?.keywords ? form.seo.keywords.split(',').map(k => k.trim()).filter(Boolean) : [] }
       };
       if (editing) await API.put(`/packages/${editing._id}`, data);
@@ -204,11 +204,6 @@ export default function Packages() {
               <div className="flex space-x-3 pt-2 border-t border-gray-100">
                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 font-medium">Cancel</button>
                 <button type="submit" disabled={loading} className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-medium hover:shadow-lg disabled:opacity-50"><FiSave className="w-4 h-4" /><span>{loading ? 'Saving...' : editing ? 'Update' : 'Create'}</span></button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
               </div>
             </form>
           </div>

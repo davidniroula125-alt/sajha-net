@@ -60,29 +60,29 @@ export default function BusinessSection() {
             >
               <p className="text-xs text-primary-500 font-medium uppercase">{plan.name}</p>
               <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">{plan.speed} Mbps</p>
-              <p className="text-sm text-gray-500 mt-1">Rs. {plan.price?.monthly?.toLocaleString()}/mo</p>
+              <p className="text-sm text-gray-500 mt-1">NPR. {(plan.price?.yearly || plan.price?.monthly)?.toLocaleString()}/yr</p>
             </motion.div>
           )) : (
             <>
-              {[
-                { speed: '100 Mbps', price: '2,499', label: 'Starter' },
-                { speed: '300 Mbps', price: '4,999', label: 'Professional' },
-                { speed: '600 Mbps', price: '9,999', label: 'Enterprise' },
-                { speed: '1 Gbps', price: 'Custom', label: 'Dedicated' },
-              ].map((plan, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  viewport={{ once: true }}
-                  className="card p-5 text-center"
-                >
-                  <p className="text-xs text-primary-500 font-medium uppercase">{plan.label}</p>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">{plan.speed}</p>
-                  <p className="text-sm text-gray-500 mt-1">Rs. {plan.price}/mo</p>
-                </motion.div>
-              ))}
+{[
+              { speed: '100 Mbps', yearly: '5000', monthly: '500', label: 'Starter' },
+              { speed: '300 Mbps', yearly: '10000', monthly: '1000', label: 'Professional' },
+              { speed: '600 Mbps', yearly: '15000', monthly: '1500', label: 'Enterprise' },
+              { speed: '1 Gbps', yearly: '30000', monthly: '3000', label: 'Dedicated' },
+            ].map((plan, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+                className="card p-5 text-center"
+              >
+                <p className="text-xs text-primary-500 font-medium uppercase">{plan.label}</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">{plan.speed}</p>
+                <p className="text-sm text-gray-500 mt-1">NPR. {(plan.yearly || plan.monthly)?.toLocaleString()}/yr</p>
+              </motion.div>
+            ))}
             </>
           )}
         </div>

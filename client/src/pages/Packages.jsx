@@ -108,7 +108,7 @@ export default function Packages() {
               )}
               <div className="flex gap-2 mb-3">
                 <Button to="/apply" variant={pkg.isPopular ? 'primary' : 'outline'} className="flex-1 text-center">Apply Now</Button>
-                <Button variant="outline" className="flex-1 text-center">Compare</Button>
+                <Button to="/compare" variant="outline" className="flex-1 text-center">Compare</Button>
               </div>
               {pkg.badge && (
                 <div className="text-center">

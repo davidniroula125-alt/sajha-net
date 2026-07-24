@@ -25,7 +25,7 @@ export default function Apply() {
 
   const packageOptions = [
     { value: '', label: 'Select Package' },
-    ...packages.map(p => ({ value: p._id, label: `${p.name} - Rs. ${p.price?.monthly?.toLocaleString()}/mo` }))
+    ...packages.map(p => ({ value: p._id, label: `${p.name} - NPR ${p.price?.yearly || p.price?.monthly} /yr` }))
   ];
 
   const handleSubmit = async (e) => {
