@@ -97,28 +97,6 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.get('/api/update-packages', async (req, res) => {
-  if (process.env.SEED_SECRET !== 'sajha-seed-2026') return res.status(403).json({ message: 'forbidden' });
-  try {
-    const Package = require('./models/Package');
-    const Setting = require('./models/Setting');
-    
-    await Package.updateMany({ name: 'Bronze' }, { $set: { features: ['No Deposit Required', 'FREE Router + Drop Wire', '24/7 Support', 'Unlimited Data'] } });
-    await Package.updateMany({ name: 'Silver' }, { $set: { features: ['No Deposit Required', 'FREE Router + Drop Wire', '24/7 Support', 'Unlimited Data'], isPopular: true } });
-    await Package.updateMany({ name: 'Gold' }, { $set: { features: ['No Deposit Required', 'FREE Router + Drop Wire', '24/7 Support', 'Unlimited Data', 'Free IPTV'] } });
-    await Package.updateMany({ name: 'Platinum' }, { $set: { features: ['No Deposit Required', 'FREE Router + Drop Wire', '24/7 Support', 'Unlimited Data', 'Free IPTV', 'Priority Support'] } });
-    await Package.updateMany({ name: 'Essential' }, { $set: { features: ['80 Mbps + IP TV', 'FREE Router + Drop Wire', '24/7 Support', 'Unlimited Data'] } });
-    await Package.updateMany({ name: 'Enhanced' }, { $set: { features: ['150 Mbps + IP TV', 'FREE Router + Drop Wire', '24/7 Support', 'Unlimited Data'] } });
-    await Package.updateMany({ name: 'Premium' }, { $set: { features: ['200 Mbps + IP TV', 'FREE Router + Drop Wire', '24/7 Support', 'Unlimited Data'] } });
-    
-    await Setting.updateMany({ key: 'facebook' }, { $set: { value: 'https://www.facebook.com/sajhanet' } });
-    
-    res.json({ success: true, message: 'Packages and settings updated!' });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const clientBuildPath = path.join(__dirname, '..', 'client', 'dist');
