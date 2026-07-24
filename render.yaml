@@ -3,12 +3,14 @@ services:
     name: sajha-net
     runtime: node
     plan: free
-    buildCommand: npm install && cd client && npm install && npm run build && cd ../admin && npm install && npm run build && cd ../server && npm install
+    buildCommand: cd server && npm install && cd ../client && npm install && npm run build && cd ../admin && npm install && npm run build
     startCommand: cd server && node server.js
     envVars:
       - key: MONGODB_URI
         sync: false
       - key: JWT_SECRET
-        generateValue: true
+        sync: false
+      - key: JWT_EXPIRE
+        value: "7d"
       - key: NODE_ENV
         value: production
