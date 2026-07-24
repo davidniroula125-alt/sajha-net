@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiCheck, FiWifi, FiMonitor } from 'react-icons/fi';
+import { FiCheck, FiWifi, FiMonitor, FiBriefcase } from 'react-icons/fi';
 import { packageAPI } from '../../services/api';
 
 export default function PackagesSection() {
@@ -15,6 +15,7 @@ export default function PackagesSection() {
 
   const internetPkgs = packages.filter(p => p.type === 'internet').sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   const comboPkgs = packages.filter(p => p.type === 'combo').sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+  const businessPkgs = packages.filter(p => p.type === 'business').sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
   if (packages.length === 0) return null;
 
@@ -115,6 +116,90 @@ export default function PackagesSection() {
             </div>
           </motion.div>
         </div>
+
+        {businessPkgs.length > 0 && (
+          <div className="mt-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8"
+            >
+              <h2 className="text-3xl md:text-4xl font-bold mb-3">
+                <span className="text-gray-900 dark:text-white">Business</span>{' '}
+                <span className="text-primary-500">Packages</span>
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Dedicated internet solutions for businesses with SLA guarantees, static IPs, and priority support.</p>
+            </motion.div>
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              {businessPkgs.map((pkg, i) => (
+                <motion.div
+                  key={pkg._id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className={`bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden ${pkg.isPopular ? 'ring-2 ring-primary-500' : ''}`}
+                >
+                  <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white p-5 flex items-center gap-3">
+                    <FiBriefcase className="w-6 h-6" />
+                    <h3 className="text-lg font-bold">{pkg.name}</h3>
+                    {pkg.isPopular && (
+                      <span className="ml-auto px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase">Popular</span>
+                    )}
+                  </div>
+                  <div className="p-4 sm:p-6 overflow-x-auto">
+                    <table className="w-full min-w-[300px]">
+                      <thead>
+                        <tr className="border-b border-gray-200 dark:border-gray-600">
+                          <th className="text-left py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Feature</th>
+                          <th className="text-left py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Details</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-gray-100 dark:border-gray-700">
+                          <td className="py-3 text-sm text-gray-600 dark:text-gray-400">Speed</td>
+                          <td className="py-3 text-sm font-semibold text-gray-900 dark:text-white">{pkg.speed} Mbps</td>
+                        </tr>
+                        <tr className="border-b border-gray-100 dark:border-gray-700">
+                          <td className="py-3 text-sm text-gray-600 dark:text-gray-400">Price (Monthly)</td>
+                          <td className="py-3 text-sm font-bold text-gray-900 dark:text-white">Rs. {pkg.price?.monthly?.toLocaleString()}</td>
+                        </tr>
+                        <tr className="border-b border-gray-100 dark:border-gray-700">
+                          <td className="py-3 text-sm text-gray-600 dark:text-gray-400">Price (Yearly)</td>
+                          <td className="py-3 text-sm font-bold text-gray-900 dark:text-white">Rs. {(pkg.price?.monthly * 12)?.toLocaleString()}/yr</td>
+                        </tr>
+                        <tr className="border-b border-gray-100 dark:border-gray-700">
+                          <td className="py-3 text-sm text-gray-600 dark:text-gray-400">Installation</td>
+                          <td className="py-3 text-sm font-semibold text-gray-900 dark:text-white">Rs. {pkg.installationCharge?.toLocaleString() || 'Free'}</td>
+                        </tr>
+                        <tr className="border-b-0">
+                          <td className="py-3 text-sm text-gray-600 dark:text-gray-400" colSpan={2}>
+                            <ul className="space-y-1">
+                              {pkg.features?.map((f, j) => (
+                                <li key={j} className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                  <FiCheck className="w-4 h-4 text-success-500 mr-2 flex-shrink-0" /> {f}
+                                </li>
+                              ))}
+                            </ul>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <div className="mt-4 text-center">
+                      <Link
+                        to="/apply"
+                        className="inline-block px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition-all duration-300"
+                      >
+                        Get Connected Today!
+                      </Link>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="text-center mt-10">
           <Link
