@@ -18,6 +18,9 @@ const applicationSchema = new mongoose.Schema({
   notes: { type: String, default: '' },
   paymentStatus: { type: String, enum: ['unpaid', 'paid'], default: 'unpaid' },
   paymentMethod: { type: String, enum: ['esewa', 'khalti', 'bank', 'cash', 'online', ''], default: '' },
+  paymentAmount: { type: Number, default: 0 },
+  paymentDuration: { type: String, enum: ['monthly', 'quarterly', 'halfYearly', 'yearly', ''], default: '' },
+  expiryDate: Date,
   status: {
     type: String,
     enum: ['pending', 'approved', 'installation-scheduled', 'installed', 'rejected'],

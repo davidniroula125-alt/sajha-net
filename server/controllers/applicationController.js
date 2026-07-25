@@ -35,11 +35,21 @@ exports.updateApplication = async (req, res) => {
     const application = await Application.findById(req.params.id).populate('package');
     if (!application) return res.status(404).json({ success: false, message: 'Application not found' });
 
-    const { status, paymentStatus, paymentMethod, adminNotes } = req.body;
+    const { status, paymentStatus, paymentMethod, paymentAmount, paymentDuration, adminNotes } = req.body;
 
     if (paymentStatus) application.paymentStatus = paymentStatus;
     if (paymentMethod !== undefined) application.paymentMethod = paymentMethod;
+    if (paymentAmount !== undefined) application.paymentAmount = paymentAmount;
+    if (paymentDuration !== undefined) application.paymentDuration = paymentDuration;
     if (adminNotes !== undefined) application.adminNotes = adminNotes;
+
+    if (paymentStatus === 'paid' && paymentDuration) {
+      const months = { monthly: 1, quarterly: 3, halfYearly: 6, yearly: 12 };
+      const m = months[paymentDuration] || 12;
+      const expiry = new Date();
+      expiry.setMonth(expiry.getMonth() + m);
+      application.expiryDate = expiry;
+    }
 
     if (status === 'approved' && application.paymentStatus === 'paid') {
       let user = await User.findOne({ phone: application.phone });
@@ -66,9 +76,19 @@ exports.updateApplication = async (req, res) => {
       application.status = 'installed';
       application.installationDate = new Date();
 
+      if (!application.expiryDate) {
+        const months = { monthly: 1, quarterly: 3, halfYearly: 6, yearly: 12 };
+        const pkg = application.package;
+        const dur = application.paymentDuration || pkg?.billingCycle || 'yearly';
+        const m = months[dur] || 12;
+        const expiry = new Date();
+        expiry.setMonth(expiry.getMonth() + m);
+        application.expiryDate = expiry;
+      }
+
       const pkg = application.package;
-      const duration = pkg?.billingCycle || 'yearly';
-      const amount = pkg?.prices?.yearly || pkg?.price || 0;
+      const duration = application.paymentDuration || pkg?.billingCycle || 'yearly';
+      const amount = application.paymentAmount || pkg?.prices?.yearly || pkg?.price || 0;
       const invoiceNum = 'INV-' + Date.now();
 
       await Payment.create({

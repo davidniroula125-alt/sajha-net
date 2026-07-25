@@ -7,6 +7,7 @@ export default function Applications() {
   const [statusFilter, setStatusFilter] = useState('');
   const [showPaymentModal, setShowPaymentModal] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [paymentDuration, setPaymentDuration] = useState('yearly');
 
   useEffect(() => { fetchApplications(); }, [statusFilter]);
 
@@ -25,7 +26,16 @@ export default function Applications() {
 
   const markPaid = async (id) => {
     try {
-      await API.put(`/applications/${id}`, { paymentStatus: 'paid', paymentMethod });
+      const app = applications.find(a => a._id === id);
+      const pkg = app?.package;
+      let amount = 0;
+      if (pkg?.prices) {
+        const priceMap = { monthly: pkg.prices.monthly, quarterly: pkg.prices.quarterly, halfYearly: pkg.prices.halfYearly, yearly: pkg.prices.yearly };
+        amount = priceMap[paymentDuration] || pkg.prices.yearly || pkg.price || 0;
+      } else {
+        amount = pkg?.price || 0;
+      }
+      await API.put(`/applications/${id}`, { paymentStatus: 'paid', paymentMethod, paymentDuration, paymentAmount: amount });
       setShowPaymentModal(null);
       fetchApplications();
     } catch {}
@@ -77,6 +87,7 @@ export default function Applications() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Package</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Expiry</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
@@ -94,6 +105,7 @@ export default function Applications() {
                   {app.paymentMethod && <span className="ml-1 text-xs text-gray-400">({app.paymentMethod})</span>}
                 </td>
                 <td className="px-6 py-4"><span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[app.status] || 'bg-gray-100 text-gray-700'}`}>{app.status}</span></td>
+                <td className="px-6 py-4 text-sm text-gray-500">{app.expiryDate ? new Date(app.expiryDate).toLocaleDateString('en-NP', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}</td>
                 <td className="px-6 py-4 text-sm text-gray-500">{new Date(app.createdAt).toLocaleDateString()}</td>
                 <td className="px-6 py-4">
                   <div className="flex space-x-1">
@@ -140,6 +152,13 @@ export default function Applications() {
               <option value="khalti">Khalti</option>
               <option value="bank">Bank Transfer</option>
               <option value="online">Online</option>
+            </select>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
+            <select value={paymentDuration} onChange={e => setPaymentDuration(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly (3 months)</option>
+              <option value="halfYearly">Half Yearly (6 months)</option>
+              <option value="yearly">Yearly (12 months)</option>
             </select>
             <div className="flex space-x-2">
               <button onClick={() => setShowPaymentModal(null)} className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
