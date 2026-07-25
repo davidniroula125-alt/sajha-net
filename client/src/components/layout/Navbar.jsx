@@ -11,6 +11,7 @@ const navLinks = [
   { name: 'Business', path: '/business' },
   { name: 'Coverage', path: '/coverage' },
   { name: 'Support', path: '/support' },
+  { name: 'Speed Test', path: '/speed-test' },
   { name: 'Blog', path: '/blog' },
   { name: 'About', path: '/about' },
   { name: 'Contact', path: '/contact' },

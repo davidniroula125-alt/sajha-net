@@ -92,6 +92,7 @@ app.use('/api/settings', require('./routes/settings'));
 app.use('/api/cms', require('./routes/cms'));
 app.use('/api/complaints', require('./routes/complaints'));
 app.use('/api/feedbacks', require('./routes/feedbacks'));
+app.use('/api/speed-test', require('./routes/speedTest'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });

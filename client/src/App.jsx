@@ -21,6 +21,7 @@ import Support from './pages/Support';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import CustomerPortal from './pages/CustomerPortal';
+import SpeedTest from './pages/SpeedTest';
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
                   <Route path="/about" element={<About />} />
                   <Route path="/portal/*" element={<CustomerPortal />} />
                   <Route path="/apply" element={<Apply />} />
+                  <Route path="/speed-test" element={<SpeedTest />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                 </Routes>

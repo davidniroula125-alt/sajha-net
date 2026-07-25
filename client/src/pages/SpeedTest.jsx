@@ -1,0 +1,313 @@
+import React, { useState, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FiWifi, FiDownload, FiClock, FiActivity, FiRefreshCw, FiCheck } from 'react-icons/fi';
+import { Section } from '../components/common/UIComponents';
+
+const TEST_SIZES = [5, 10, 25];
+const GAUGE_MAX = 500;
+
+function Gauge({ speed, maxSpeed, status }) {
+  const pct = Math.min(speed / maxSpeed, 1);
+  const angle = -135 + pct * 270;
+  const radius = 100;
+  const cx = 120;
+  const cy = 120;
+
+  const arcPath = (startDeg, endDeg) => {
+    const toRad = (d) => (d * Math.PI) / 180;
+    const x1 = cx + radius * Math.cos(toRad(startDeg));
+    const y1 = cy + radius * Math.sin(toRad(startDeg));
+    const x2 = cx + radius * Math.cos(toRad(endDeg));
+    const y2 = cy + radius * Math.sin(toRad(endDeg));
+    const large = endDeg - startDeg > 180 ? 1 : 0;
+    return `M ${x1} ${y1} A ${radius} ${radius} 0 ${large} 1 ${x2} ${y2}`;
+  };
+
+  const needleX = cx + (radius - 10) * Math.cos((angle * Math.PI) / 180);
+  const needleY = cy + (radius - 10) * Math.sin((angle * Math.PI) / 180);
+
+  const getColor = () => {
+    if (status === 'error') return '#ef4444';
+    if (pct < 0.3) return '#ef4444';
+    if (pct < 0.6) return '#f59e0b';
+    if (pct < 0.8) return '#3b82f6';
+    return '#22c55e';
+  };
+
+  const getLabel = () => {
+    if (status === 'error') return 'Error';
+    if (pct < 0.3) return 'Slow';
+    if (pct < 0.6) return 'Good';
+    if (pct < 0.8) return 'Fast';
+    return 'Excellent';
+  };
+
+  return (
+    <div className="relative inline-block">
+      <svg width="240" height="160" viewBox="0 0 240 160">
+        <path d={arcPath(135, 135 + 270)} fill="none" stroke="#1e293b" strokeWidth="12" strokeLinecap="round" />
+        <path
+          d={arcPath(135, 135 + pct * 270)}
+          fill="none"
+          stroke={getColor()}
+          strokeWidth="12"
+          strokeLinecap="round"
+          style={{ transition: 'all 0.3s ease-out' }}
+        />
+        <line
+          x1={cx}
+          y1={cy}
+          x2={needleX}
+          y2={needleY}
+          stroke={getColor()}
+          strokeWidth="3"
+          strokeLinecap="round"
+          style={{ transition: 'all 0.3s ease-out' }}
+        />
+        <circle cx={cx} cy={cy} r="6" fill={getColor()} style={{ transition: 'fill 0.3s' }} />
+        {[0, 0.25, 0.5, 0.75, 1].map((p, i) => {
+          const a = ((-135 + p * 270) * Math.PI) / 180;
+          const tx = cx + (radius + 16) * Math.cos(a);
+          const ty = cy + (radius + 16) * Math.sin(a);
+          return (
+            <text key={i} x={tx} y={ty} textAnchor="middle" dominantBaseline="middle" className="fill-gray-500 dark:fill-gray-400" style={{ fontSize: '10px' }}>
+              {Math.round(p * GAUGE_MAX)}
+            </text>
+          );
+        })}
+      </svg>
+      <div className="text-center mt-2">
+        <span className="text-xs font-semibold px-3 py-1 rounded-full" style={{ backgroundColor: getColor() + '20', color: getColor() }}>
+          {getLabel()}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export default function SpeedTest() {
+  const [status, setStatus] = useState('idle');
+  const [speed, setSpeed] = useState(0);
+  const [ping, setPing] = useState(0);
+  const [downloadSize, setDownloadSize] = useState(0);
+  const [downloadTime, setDownloadTime] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [testSize, setTestSize] = useState(10);
+  const abortRef = useRef(null);
+  const gaugeMax = testSize <= 5 ? 100 : testSize <= 10 ? 200 : GAUGE_MAX;
+
+  const runPing = useCallback(async () => {
+    const results = [];
+    for (let i = 0; i < 5; i++) {
+      const start = performance.now();
+      try {
+        await fetch('/api/health', { cache: 'no-store' });
+        results.push(performance.now() - start);
+      } catch {
+        results.push(0);
+      }
+    }
+    const valid = results.filter((r) => r > 0);
+    return valid.length > 0 ? Math.round(valid.reduce((a, b) => a + b, 0) / valid.length) : 0;
+  }, []);
+
+  const runDownload = useCallback(async (signal) => {
+    const start = performance.now();
+    const res = await fetch(`/api/speed-test?size=${testSize}`, { cache: 'no-store', signal });
+    const reader = res.body.getReader();
+    let received = 0;
+    const contentLength = parseInt(res.headers.get('Content-Length') || testSize * 1024 * 1024);
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      received += value.length;
+      setProgress(Math.round((received / contentLength) * 100));
+    }
+
+    const elapsed = (performance.now() - start) / 1000;
+    const bitsPerSecond = (received * 8) / elapsed;
+    return { speed: Math.round(bitsPerSecond / 1000000), size: received, time: elapsed };
+  }, [testSize]);
+
+  const startTest = useCallback(async () => {
+    setStatus('ping');
+    setSpeed(0);
+    setPing(0);
+    setProgress(0);
+    setDownloadSize(0);
+    setDownloadTime(0);
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      const pingMs = await runPing();
+      setPing(pingMs);
+
+      setStatus('download');
+      const result = await runDownload(controller.signal);
+      setSpeed(result.speed);
+      setDownloadSize(result.size);
+      setDownloadTime(result.time.toFixed(2));
+      setStatus('done');
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        setStatus('error');
+        setSpeed(0);
+      }
+    }
+  }, [runPing, runDownload]);
+
+  const resetTest = useCallback(() => {
+    if (abortRef.current) abortRef.current.abort();
+    setStatus('idle');
+    setSpeed(0);
+    setPing(0);
+    setProgress(0);
+    setDownloadSize(0);
+    setDownloadTime(0);
+  }, []);
+
+  const handleTestAgain = useCallback(() => {
+    resetTest();
+    setTimeout(() => startTest(), 100);
+  }, [resetTest, startTest]);
+
+  const formatBytes = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1048576).toFixed(1)} MB`;
+  };
+
+  return (
+    <div className="pt-24 pb-16 min-h-screen">
+      <section className="relative text-white py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1920&q=80)' }} />
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900/85 via-primary-900/80 to-secondary-900/85" />
+        <div className="relative max-w-7xl mx-auto px-4 text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">Speed <span className="text-primary-400">Test</span></h1>
+            <p className="text-xl text-white/70 max-w-2xl mx-auto">Test your internet connection speed with Sajha Net. Works on Windows, Mac, and all modern browsers.</p>
+          </motion.div>
+        </div>
+      </section>
+
+      <Section>
+        <div className="max-w-2xl mx-auto">
+          <div className="card p-8 text-center">
+            {status === 'idle' && (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <FiWifi className="w-16 h-16 text-primary-500 mx-auto mb-6" />
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Ready to Test</h2>
+                <p className="text-gray-500 dark:text-gray-400 mb-8">Click the button below to measure your download speed.</p>
+
+                <div className="flex justify-center gap-3 mb-8">
+                  {TEST_SIZES.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setTestSize(s)}
+                      className={`px-5 py-2 rounded-xl text-sm font-medium transition-all ${
+                        testSize === s ? 'gradient-bg text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      {s} MB
+                    </button>
+                  ))}
+                </div>
+
+                <button onClick={startTest} className="px-10 py-4 gradient-bg text-white rounded-2xl font-bold text-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                  Start Speed Test
+                </button>
+              </motion.div>
+            )}
+
+            {(status === 'ping' || status === 'download') && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <Gauge speed={status === 'download' ? speed : 0} maxSpeed={gaugeMax} status={status} />
+                <div className="mt-4">
+                  <p className="text-5xl font-bold gradient-text mb-2">{status === 'download' ? speed : 0} <span className="text-lg text-gray-500 dark:text-gray-400">Mbps</span></p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {status === 'ping' ? 'Measuring latency...' : 'Downloading test data...'}
+                  </p>
+                </div>
+                <div className="mt-6 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                  <motion.div
+                    className="h-3 rounded-full gradient-bg"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </div>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">{progress}% complete</p>
+              </motion.div>
+            )}
+
+            {status === 'done' && (
+              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+                <Gauge speed={speed} maxSpeed={gaugeMax} status={status} />
+                <div className="mt-4 mb-8">
+                  <p className="text-6xl font-bold gradient-text mb-2">{speed} <span className="text-lg text-gray-500 dark:text-gray-400">Mbps</span></p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Download Speed</p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 mb-8">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                    <FiClock className="w-5 h-5 text-primary-500 mx-auto mb-2" />
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">{ping}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Ping (ms)</p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                    <FiDownload className="w-5 h-5 text-primary-500 mx-auto mb-2" />
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">{formatBytes(downloadSize)}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Downloaded</p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                    <FiActivity className="w-5 h-5 text-primary-500 mx-auto mb-2" />
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">{downloadTime}s</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Time</p>
+                  </div>
+                </div>
+
+                <div className="flex justify-center gap-4">
+                  <button onClick={handleTestAgain} className="flex items-center gap-2 px-8 py-3 gradient-bg text-white rounded-xl font-semibold hover:shadow-lg transition-all">
+                    <FiRefreshCw className="w-4 h-4" /> Test Again
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {status === 'error' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <FiWifi className="w-16 h-16 text-red-500 mx-auto mb-6" />
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Test Failed</h2>
+                <p className="text-gray-500 dark:text-gray-400 mb-8">Could not connect to the speed test server. Please check your connection and try again.</p>
+                <button onClick={handleTestAgain} className="flex items-center gap-2 mx-auto px-8 py-3 gradient-bg text-white rounded-xl font-semibold hover:shadow-lg transition-all">
+                  <FiRefreshCw className="w-4 h-4" /> Try Again
+                </button>
+              </motion.div>
+            )}
+          </div>
+
+          <div className="mt-8 grid grid-cols-3 gap-4">
+            <div className="card p-4 text-center">
+              <FiDownload className="w-6 h-6 text-primary-500 mx-auto mb-2" />
+              <h3 className="font-bold text-gray-900 dark:text-white text-sm">Download Test</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Measures how fast data is downloaded from our server</p>
+            </div>
+            <div className="card p-4 text-center">
+              <FiClock className="w-6 h-6 text-primary-500 mx-auto mb-2" />
+              <h3 className="font-bold text-gray-900 dark:text-white text-sm">Latency (Ping)</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Measures the response time of your connection</p>
+            </div>
+            <div className="card p-4 text-center">
+              <FiCheck className="w-6 h-6 text-primary-500 mx-auto mb-2" />
+              <h3 className="font-bold text-gray-900 dark:text-white text-sm">Works Everywhere</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">No downloads needed. Works in any modern browser</p>
+            </div>
+          </div>
+        </div>
+      </Section>
+    </div>
+  );
+}

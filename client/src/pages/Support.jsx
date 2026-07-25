@@ -339,7 +339,7 @@ export default function Support() {
               { title: 'Restart Your Router', desc: 'Unplug your router, wait 30 seconds, and plug it back in. This resolves most connectivity issues.' },
               { title: 'Check Cables', desc: 'Ensure all Ethernet cables are properly connected and not damaged.' },
               { title: 'Check WiFi Signal', desc: 'Move closer to the router or check for interference from other devices.' },
-              { title: 'Run Speed Test', desc: 'Test your speed at speedtest.net and compare with your plan speed.' },
+              { title: 'Run Speed Test', desc: 'Use our speed test tool to check your connection speed and compare with your plan speed.' },
               { title: 'Reset Network Settings', desc: 'On your device, forget the WiFi network and reconnect with the password.' },
               { title: 'Check for Outages', desc: 'Visit our website or call 9705390890 to check for planned maintenance.' },
             ].map((tip, i) => (
@@ -364,14 +364,14 @@ export default function Support() {
             <div className="grid md:grid-cols-2 gap-6">
               {[
                 { name: 'Sajha Net App', desc: 'Manage your account on the go', platform: 'Android & iOS' },
-                { name: 'Speed Test Tool', desc: 'Test your internet speed', platform: 'Windows & Mac' },
+                { name: 'Speed Test Tool', desc: 'Test your internet speed', platform: 'Windows & Mac', link: '/speed-test' },
               ].map((app, i) => (
                 <div key={i} className="card p-6 text-center">
                   <FiDownload className="w-10 h-10 text-primary-500 mx-auto mb-3" />
                   <h3 className="font-bold text-gray-900 dark:text-white">{app.name}</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{app.desc}</p>
                   <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">{app.platform}</p>
-                  <Button variant="secondary" size="sm">Download</Button>
+                  <Button variant="secondary" size="sm" to={app.link || '#'}>{app.link ? 'Open Tool' : 'Download'}</Button>
                 </div>
               ))}
             </div>
