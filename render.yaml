@@ -14,5 +14,3 @@ services:
         value: "7d"
       - key: NODE_ENV
         value: production
-      - key: SEED_SECRET
-        value: "sajha-reseed-2026"
