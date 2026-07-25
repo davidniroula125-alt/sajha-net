@@ -37,7 +37,23 @@ export default function Apply() {
     e.preventDefault();
     setLoading(true);
     try {
-      await applicationAPI.create(form);
+      const payload = {
+        fullName: form.fullName,
+        phone: form.phone,
+        email: form.email,
+        address: {
+          province: form.province,
+          district: form.district,
+          municipality: form.municipality,
+          ward: form.ward,
+          street: form.address,
+          landmark: form.landmark,
+        },
+        package: form.package,
+        preferredDate: form.preferredDate,
+        notes: form.notes,
+      };
+      await applicationAPI.create(payload);
       addToast('Application submitted successfully! We will contact you soon.', 'success');
       setForm({ fullName: '', phone: '', email: '', province: '', district: '', municipality: '', ward: '', address: '', landmark: '', package: '', preferredDate: '', notes: '' });
     } catch {
