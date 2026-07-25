@@ -97,6 +97,25 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// Auto-migration: convert old-format price objects to Number on startup
+(async () => {
+  try {
+    const Package = require('./models/Package');
+    const oldPkgs = await Package.find({ price: { $type: 'object' } });
+    if (oldPkgs.length > 0) {
+      for (const pkg of oldPkgs) {
+        const yearlyPrice = pkg.price?.yearly || pkg.price?.monthly || 0;
+        pkg.price = yearlyPrice;
+        pkg.billingCycle = 'yearly';
+        await pkg.save();
+      }
+      console.log(`Migrated ${oldPkgs.length} old-format package(s) to new price format.`);
+    }
+  } catch (err) {
+    console.error('Migration error:', err.message);
+  }
+})();
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const clientBuildPath = path.join(__dirname, '..', 'client', 'dist');
