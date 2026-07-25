@@ -120,19 +120,34 @@ app.get('/api/health', (req, res) => {
     }
 
     // Backfill prices for ALL packages missing proper prices object
-    const allPkgs = await Package.find({}).select('_id price prices slug');
+    const knownPrices = {
+      'bronze': { yearly: 6500, halfYearly: 3250, quarterly: 1625, monthly: 542 },
+      'silver': { yearly: 7500, halfYearly: 3750, quarterly: 1875, monthly: 625 },
+      'gold': { yearly: 8500, halfYearly: 4250, quarterly: 2125, monthly: 708 },
+      'platinum': { yearly: 9500, halfYearly: 4750, quarterly: 2375, monthly: 792 },
+      'essential': { yearly: 8500, halfYearly: 4250, quarterly: 2125, monthly: 708 },
+      'enhanced': { yearly: 9500, halfYearly: 4750, quarterly: 2375, monthly: 792 },
+      'premium': { yearly: 10500, halfYearly: 5250, quarterly: 2625, monthly: 875 },
+      'business starter': { yearly: 7500, halfYearly: 3750, quarterly: 1875, monthly: 625 },
+      'business pro': { yearly: 15000, halfYearly: 7500, quarterly: 3750, monthly: 1250 }
+    };
+    const allPkgs = await Package.find({});
     let backfilled = 0;
     for (const pkg of allPkgs) {
-      const yearlyPrice = pkg.price || 0;
-      const needsBackfill = !pkg.prices || !pkg.prices.yearly || (pkg.prices.yearly === 0 && yearlyPrice > 0);
+      const slug = (pkg.slug || pkg.name || '').toLowerCase().trim();
+      const needsBackfill = !pkg.prices || !pkg.prices.yearly || pkg.prices.yearly === 0;
       if (needsBackfill) {
+        const yearlyPrice = knownPrices[slug]?.yearly || pkg.price || 0;
+        const prices = knownPrices[slug] || {
+          yearly: yearlyPrice,
+          halfYearly: Math.round(yearlyPrice / 2),
+          quarterly: Math.round(yearlyPrice / 4),
+          monthly: Math.round(yearlyPrice / 12)
+        };
         await Package.updateOne({ _id: pkg._id }, { $set: {
-          prices: {
-            yearly: yearlyPrice,
-            halfYearly: Math.round(yearlyPrice / 2),
-            quarterly: Math.round(yearlyPrice / 4),
-            monthly: Math.round(yearlyPrice / 12)
-          }
+          price: yearlyPrice,
+          billingCycle: 'yearly',
+          prices
         } });
         backfilled++;
       }

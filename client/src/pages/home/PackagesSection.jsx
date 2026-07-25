@@ -23,9 +23,9 @@ export default function PackagesSection() {
   };
 
   const getYearlyPrice = (pkg) => pkg.prices?.yearly || pkg.price || 0;
-  const getMonthlyPrice = (pkg) => pkg.prices?.monthly || 0;
-  const getQuarterlyPrice = (pkg) => pkg.prices?.quarterly || 0;
-  const getHalfYearlyPrice = (pkg) => pkg.prices?.halfYearly || 0;
+  const getMonthlyPrice = (pkg) => pkg.prices?.monthly || Math.round((pkg.prices?.yearly || pkg.price || 0) / 12) || 0;
+  const getQuarterlyPrice = (pkg) => pkg.prices?.quarterly || Math.round((pkg.prices?.yearly || pkg.price || 0) / 4) || 0;
+  const getHalfYearlyPrice = (pkg) => pkg.prices?.halfYearly || Math.round((pkg.prices?.yearly || pkg.price || 0) / 2) || 0;
 
   if (packages.length === 0) return null;
 
