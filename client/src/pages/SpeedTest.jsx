@@ -237,121 +237,70 @@ export default function SpeedTest() {
   };
 
   const downloadResults = useCallback(() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 600;
-    canvas.height = 500;
-    const ctx = canvas.getContext('2d');
+    const validPings = pingResults.filter(function(r) { return r > 0; });
+    const minP = validPings.length > 0 ? Math.min.apply(null, validPings) : 0;
+    const maxP = validPings.length > 0 ? Math.max.apply(null, validPings) : 0;
+    const rating = speed >= 100 ? 'Excellent' : speed >= 50 ? 'Good' : speed >= 20 ? 'Fair' : 'Slow';
 
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(0, 0, 600, 500);
-
-    ctx.fillStyle = '#22d3ee';
-    ctx.font = 'bold 13px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('SAJHA NET', 300, 30);
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 24px Arial';
-    ctx.fillText('Speed Test Results', 300, 56);
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '12px Arial';
-    ctx.fillText(new Date().toLocaleString(), 300, 76);
-
-    ctx.strokeStyle = '#334155';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(30, 90);
-    ctx.lineTo(570, 90);
-    ctx.stroke();
-
-    ctx.fillStyle = '#22d3ee';
-    ctx.font = 'bold 15px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText('DOWNLOAD SPEED', 50, 120);
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 48px Arial';
-    ctx.fillText(String(speed), 50, 175);
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '18px Arial';
-    var speedW = ctx.measureText(String(speed)).width;
-    ctx.fillText('Mbps', 50 + speedW + 8, 175);
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '12px Arial';
-    ctx.fillText('Downloaded: ' + formatBytes(downloadSize) + '  |  Time: ' + downloadTime + 's  |  Size: ' + testSize + ' MB', 50, 200);
-
-    ctx.strokeStyle = '#334155';
-    ctx.beginPath();
-    ctx.moveTo(30, 218);
-    ctx.lineTo(570, 218);
-    ctx.stroke();
-
-    ctx.fillStyle = '#22d3ee';
-    ctx.font = 'bold 15px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText('LATENCY (PING)', 50, 248);
-
-    var validPings = pingResults.filter(function(r) { return r > 0; });
-    var minP = validPings.length > 0 ? Math.min.apply(null, validPings) : 0;
-    var maxP = validPings.length > 0 ? Math.max.apply(null, validPings) : 0;
-
-    var boxes = [
-      { label: 'Average', value: String(ping) + ' ms', x: 50 },
-      { label: 'Minimum', value: String(minP) + ' ms', x: 220 },
-      { label: 'Maximum', value: String(maxP) + ' ms', x: 390 }
-    ];
-    boxes.forEach(function(box) {
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(box.x, 262, 160, 55);
-      ctx.strokeStyle = '#475569';
-      ctx.strokeRect(box.x, 262, 160, 55);
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '11px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(box.label, box.x + 80, 282);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 20px Arial';
-      ctx.fillText(box.value, box.x + 80, 307);
-    });
-
+    let barsHtml = '';
     if (validPings.length > 0) {
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '11px Arial';
-      ctx.textAlign = 'left';
-      ctx.fillText('Ping History:', 50, 350);
-
-      var barMax = Math.max.apply(null, validPings);
+      const barMax = Math.max.apply(null, validPings);
       validPings.forEach(function(r, i) {
-        var bx = 50 + i * 52;
-        var bh = Math.max((r / barMax) * 40, 4);
-        var color = r < 30 ? '#22c55e' : r < 80 ? '#f59e0b' : '#ef4444';
-        ctx.fillStyle = color;
-        ctx.fillRect(bx, 360 + (40 - bh), 40, bh);
-        ctx.fillStyle = '#e2e8f0';
-        ctx.font = '9px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(r + 'ms', bx + 20, 360 + 52);
+        const bh = Math.max((r / barMax) * 40, 4);
+        const color = r < 30 ? '#22c55e' : r < 80 ? '#f59e0b' : '#ef4444';
+        const x = 50 + i * 52;
+        barsHtml += '<rect x="' + x + '" y="' + (360 + (40 - bh)) + '" width="40" height="' + bh + '" fill="' + color + '"/>';
+        barsHtml += '<text x="' + (x + 20) + '" y="420" text-anchor="middle" fill="#e2e8f0" font-size="9">' + r + 'ms</text>';
       });
     }
 
-    var rating = speed >= 100 ? 'Excellent' : speed >= 50 ? 'Good' : speed >= 20 ? 'Fair' : 'Slow';
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(30, 440, 540, 40);
-    ctx.strokeStyle = '#475569';
-    ctx.strokeRect(30, 440, 540, 40);
-    ctx.fillStyle = '#22d3ee';
-    ctx.font = 'bold 13px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('www.sajhanet.com  |  ' + speed + ' Mbps  |  ' + ping + 'ms ping  |  ' + rating, 300, 465);
+    const svg = [
+      '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="490">',
+      '<rect width="600" height="490" fill="#0f172a"/>',
+      '<text x="300" y="30" text-anchor="middle" fill="#22d3ee" font-family="Arial" font-weight="bold" font-size="13">SAJHA NET</text>',
+      '<text x="300" y="56" text-anchor="middle" fill="#ffffff" font-family="Arial" font-weight="bold" font-size="24">Speed Test Results</text>',
+      '<text x="300" y="76" text-anchor="middle" fill="#94a3b8" font-family="Arial" font-size="12">' + new Date().toLocaleString() + '</text>',
+      '<line x1="30" y1="90" x2="570" y2="90" stroke="#334155" stroke-width="1"/>',
+      '<text x="50" y="120" fill="#22d3ee" font-family="Arial" font-weight="bold" font-size="15">DOWNLOAD SPEED</text>',
+      '<text x="50" y="175" fill="#ffffff" font-family="Arial" font-weight="bold" font-size="48">' + speed + '</text>',
+      '<text x="130" y="175" fill="#94a3b8" font-family="Arial" font-size="18">Mbps</text>',
+      '<text x="50" y="200" fill="#94a3b8" font-family="Arial" font-size="12">Downloaded: ' + formatBytes(downloadSize) + '  |  Time: ' + downloadTime + 's  |  Size: ' + testSize + ' MB</text>',
+      '<line x1="30" y1="218" x2="570" y2="218" stroke="#334155" stroke-width="1"/>',
+      '<text x="50" y="248" fill="#22d3ee" font-family="Arial" font-weight="bold" font-size="15">LATENCY (PING)</text>',
+      '<rect x="50" y="262" width="160" height="55" rx="6" fill="#1e293b" stroke="#475569"/>',
+      '<text x="130" y="282" text-anchor="middle" fill="#94a3b8" font-family="Arial" font-size="11">Average</text>',
+      '<text x="130" y="307" text-anchor="middle" fill="#ffffff" font-family="Arial" font-weight="bold" font-size="20">' + ping + ' ms</text>',
+      '<rect x="220" y="262" width="160" height="55" rx="6" fill="#1e293b" stroke="#475569"/>',
+      '<text x="300" y="282" text-anchor="middle" fill="#94a3b8" font-family="Arial" font-size="11">Minimum</text>',
+      '<text x="300" y="307" text-anchor="middle" fill="#22c55e" font-family="Arial" font-weight="bold" font-size="20">' + minP + ' ms</text>',
+      '<rect x="390" y="262" width="160" height="55" rx="6" fill="#1e293b" stroke="#475569"/>',
+      '<text x="470" y="282" text-anchor="middle" fill="#94a3b8" font-family="Arial" font-size="11">Maximum</text>',
+      '<text x="470" y="307" text-anchor="middle" fill="#ef4444" font-family="Arial" font-weight="bold" font-size="20">' + maxP + ' ms</text>',
+      '<text x="50" y="350" fill="#94a3b8" font-family="Arial" font-size="11">Ping History:</text>',
+      barsHtml,
+      '<rect x="30" y="440" width="540" height="40" rx="6" fill="#1e293b" stroke="#475569"/>',
+      '<text x="300" y="465" text-anchor="middle" fill="#22d3ee" font-family="Arial" font-weight="bold" font-size="13">www.sajhanet.com  |  ' + speed + ' Mbps  |  ' + ping + 'ms ping  |  ' + rating + '</text>',
+      '</svg>'
+    ].join('\n');
 
-    var link = document.createElement('a');
-    link.download = 'sajha-net-speed-test-' + Date.now() + '.png';
-    link.href = canvas.toDataURL('image/png');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = function() {
+      const c = document.createElement('canvas');
+      c.width = 600;
+      c.height = 490;
+      const cx = c.getContext('2d');
+      cx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      const link = document.createElement('a');
+      link.download = 'sajha-net-speed-test-' + Date.now() + '.png';
+      link.href = c.toDataURL('image/png');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+    img.src = url;
   }, [speed, ping, pingResults, downloadSize, downloadTime, testSize, formatBytes]);
 
   var minPing = pingResults.length > 0 ? Math.min.apply(null, pingResults.filter(function(r) { return r > 0; })) : 0;
