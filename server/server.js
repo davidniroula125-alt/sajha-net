@@ -118,24 +118,25 @@ app.get('/api/health', (req, res) => {
       console.log(`Migrated ${oldPkgs.length} old-format package(s) to new price format.`);
     }
 
-    // Backfill prices for packages missing the prices object
-    const pkgsNoPrices = await Package.find({ $or: [
-      { 'prices.yearly': { $exists: false } },
-      { 'prices': { $type: 'null' } },
-      { 'prices.yearly': 0, price: { $gt: 0 } }
-    ] });
-    for (const pkg of pkgsNoPrices) {
+    // Backfill prices for ALL packages missing proper prices object
+    const allPkgs = await Package.find({});
+    let backfilled = 0;
+    for (const pkg of allPkgs) {
       const yearlyPrice = pkg.price || 0;
-      pkg.prices = {
-        yearly: yearlyPrice,
-        halfYearly: Math.round(yearlyPrice / 2),
-        quarterly: Math.round(yearlyPrice / 4),
-        monthly: Math.round(yearlyPrice / 12)
-      };
-      await pkg.save();
+      const needsBackfill = !pkg.prices || !pkg.prices.yearly || (pkg.prices.yearly === 0 && yearlyPrice > 0);
+      if (needsBackfill) {
+        pkg.prices = {
+          yearly: yearlyPrice,
+          halfYearly: Math.round(yearlyPrice / 2),
+          quarterly: Math.round(yearlyPrice / 4),
+          monthly: Math.round(yearlyPrice / 12)
+        };
+        await pkg.save();
+        backfilled++;
+      }
     }
-    if (pkgsNoPrices.length > 0) {
-      console.log(`Backfilled prices for ${pkgsNoPrices.length} package(s).`);
+    if (backfilled > 0) {
+      console.log(`Backfilled prices for ${backfilled} package(s).`);
     }
   } catch (err) {
     console.error('Migration error:', err.message);
