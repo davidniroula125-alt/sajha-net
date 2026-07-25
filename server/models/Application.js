@@ -16,6 +16,8 @@ const applicationSchema = new mongoose.Schema({
   package: { type: mongoose.Schema.Types.ObjectId, ref: 'Package' },
   preferredDate: { type: Date },
   notes: { type: String, default: '' },
+  paymentStatus: { type: String, enum: ['unpaid', 'paid'], default: 'unpaid' },
+  paymentMethod: { type: String, enum: ['esewa', 'khalti', 'bank', 'cash', 'online', ''], default: '' },
   status: {
     type: String,
     enum: ['pending', 'approved', 'installation-scheduled', 'installed', 'rejected'],
