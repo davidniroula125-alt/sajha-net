@@ -101,37 +101,39 @@ app.get('/api/health', (req, res) => {
 (async () => {
   try {
     const Package = require('./models/Package');
-    const oldPkgs = await Package.find({ price: { $type: 'object' } });
+    const oldPkgs = await Package.find({ price: { $type: 'object' } }).select('_id price');
     if (oldPkgs.length > 0) {
       for (const pkg of oldPkgs) {
         const yearlyPrice = pkg.price?.yearly || pkg.price?.monthly || 0;
-        pkg.price = yearlyPrice;
-        pkg.billingCycle = 'yearly';
-        pkg.prices = {
-          yearly: yearlyPrice,
-          halfYearly: Math.round(yearlyPrice / 2),
-          quarterly: Math.round(yearlyPrice / 4),
-          monthly: Math.round(yearlyPrice / 12)
-        };
-        await pkg.save();
+        await Package.updateOne({ _id: pkg._id }, { $set: {
+          price: yearlyPrice,
+          billingCycle: 'yearly',
+          prices: {
+            yearly: yearlyPrice,
+            halfYearly: Math.round(yearlyPrice / 2),
+            quarterly: Math.round(yearlyPrice / 4),
+            monthly: Math.round(yearlyPrice / 12)
+          }
+        } });
       }
       console.log(`Migrated ${oldPkgs.length} old-format package(s) to new price format.`);
     }
 
     // Backfill prices for ALL packages missing proper prices object
-    const allPkgs = await Package.find({});
+    const allPkgs = await Package.find({}).select('_id price prices slug');
     let backfilled = 0;
     for (const pkg of allPkgs) {
       const yearlyPrice = pkg.price || 0;
       const needsBackfill = !pkg.prices || !pkg.prices.yearly || (pkg.prices.yearly === 0 && yearlyPrice > 0);
       if (needsBackfill) {
-        pkg.prices = {
-          yearly: yearlyPrice,
-          halfYearly: Math.round(yearlyPrice / 2),
-          quarterly: Math.round(yearlyPrice / 4),
-          monthly: Math.round(yearlyPrice / 12)
-        };
-        await pkg.save();
+        await Package.updateOne({ _id: pkg._id }, { $set: {
+          prices: {
+            yearly: yearlyPrice,
+            halfYearly: Math.round(yearlyPrice / 2),
+            quarterly: Math.round(yearlyPrice / 4),
+            monthly: Math.round(yearlyPrice / 12)
+          }
+        } });
         backfilled++;
       }
     }
