@@ -230,56 +230,87 @@ export default function SpeedTest() {
     }
   }, [status, resetTest, runPing]);
 
+  const formatBytes = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1048576).toFixed(1)} MB`;
+  };
+
+  const drawRoundedRect = (ctx, x, y, w, h, r) => {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.arcTo(x + w, y, x + w, y + r, r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+    ctx.lineTo(x + r, y + h);
+    ctx.arcTo(x, y + h, x, y + h - r, r);
+    ctx.lineTo(x, y + r);
+    ctx.arcTo(x, y, x + r, y, r);
+    ctx.closePath();
+  };
+
   const downloadResults = useCallback(() => {
     const canvas = document.createElement('canvas');
     canvas.width = 800;
-    canvas.height = 600;
+    canvas.height = 620;
     const ctx = canvas.getContext('2d');
 
-    const grad = ctx.createLinearGradient(0, 0, 800, 600);
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 800, 620);
+
+    const grad = ctx.createLinearGradient(0, 0, 800, 620);
     grad.addColorStop(0, '#0f172a');
     grad.addColorStop(1, '#1e293b');
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 800, 600);
+    ctx.fillRect(0, 0, 800, 620);
+
+    ctx.fillStyle = '#22d3ee';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('SAJHA NET', 400, 30);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 28px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Sajha Net Speed Test Results', 400, 50);
+    ctx.font = 'bold 26px Arial';
+    ctx.fillText('Speed Test Results', 400, 58);
 
     ctx.fillStyle = '#94a3b8';
-    ctx.font = '16px Arial';
+    ctx.font = '14px Arial';
     ctx.fillText(new Date().toLocaleString(), 400, 80);
 
     ctx.strokeStyle = '#334155';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(50, 100);
-    ctx.lineTo(750, 100);
+    ctx.moveTo(50, 95);
+    ctx.lineTo(750, 95);
     ctx.stroke();
 
     ctx.fillStyle = '#22d3ee';
-    ctx.font = 'bold 20px Arial';
+    ctx.font = 'bold 18px Arial';
     ctx.textAlign = 'left';
-    ctx.fillText('DOWNLOAD SPEED', 80, 145);
+    ctx.fillText('DOWNLOAD SPEED', 80, 130);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 60px Arial';
-    ctx.fillText(`${speed} Mbps`, 80, 210);
+    ctx.font = 'bold 52px Arial';
+    ctx.fillText(`${speed}`, 80, 190);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '20px Arial';
+    ctx.fillText('Mbps', 80 + ctx.measureText(`${speed}`).width + 10, 190);
 
     ctx.fillStyle = '#94a3b8';
-    ctx.font = '16px Arial';
-    ctx.fillText(`Downloaded: ${formatBytes(downloadSize)}   |   Time: ${downloadTime}s   |   Test Size: ${testSize} MB`, 80, 245);
+    ctx.font = '14px Arial';
+    ctx.fillText(`Downloaded: ${formatBytes(downloadSize)}   |   Time: ${downloadTime}s   |   Test Size: ${testSize} MB`, 80, 220);
 
     ctx.strokeStyle = '#334155';
     ctx.beginPath();
-    ctx.moveTo(50, 270);
-    ctx.lineTo(750, 270);
+    ctx.moveTo(50, 240);
+    ctx.lineTo(750, 240);
     ctx.stroke();
 
     ctx.fillStyle = '#22d3ee';
-    ctx.font = 'bold 20px Arial';
-    ctx.fillText('LATENCY (PING)', 80, 310);
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('LATENCY (PING)', 80, 275);
 
     const minPing = pingResults.length > 0 ? Math.min(...pingResults.filter(r => r > 0)) : 0;
     const maxPing = pingResults.length > 0 ? Math.max(...pingResults.filter(r => r > 0)) : 0;
@@ -294,58 +325,52 @@ export default function SpeedTest() {
       ctx.fillStyle = '#1e293b';
       ctx.strokeStyle = '#475569';
       ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.roundRect(x, 330, 200, 80, 8);
+      drawRoundedRect(ctx, x, 295, 200, 70, 8);
       ctx.fill();
       ctx.stroke();
       ctx.fillStyle = '#94a3b8';
-      ctx.font = '13px Arial';
+      ctx.font = '12px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText(box.label, x + 100, 355);
+      ctx.fillText(box.label, x + 100, 318);
       ctx.fillStyle = box.color;
-      ctx.font = 'bold 24px Arial';
-      ctx.fillText(box.value, x + 100, 390);
+      ctx.font = 'bold 22px Arial';
+      ctx.fillText(box.value, x + 100, 350);
     });
 
     ctx.fillStyle = '#94a3b8';
-    ctx.font = '13px Arial';
+    ctx.font = '12px Arial';
     ctx.textAlign = 'left';
-    ctx.fillText('Ping History:', 80, 445);
-    const barMax = Math.max(...pingResults.filter(r => r > 0), 1);
-    pingResults.forEach((r, i) => {
+    ctx.fillText('Ping History:', 80, 405);
+    const validPings = pingResults.filter(r => r > 0);
+    const barMax = validPings.length > 0 ? Math.max(...validPings) : 1;
+    validPings.forEach((r, i) => {
       const x = 80 + i * 65;
       const barH = Math.max((r / barMax) * 50, 4);
       ctx.fillStyle = r < 30 ? '#22c55e' : r < 80 ? '#f59e0b' : '#ef4444';
-      ctx.beginPath();
-      ctx.roundRect(x, 460 + (50 - barH), 50, barH, 3);
-      ctx.fill();
+      ctx.fillRect(x, 420 + (50 - barH), 50, barH);
       ctx.fillStyle = '#e2e8f0';
-      ctx.font = '11px Arial';
+      ctx.font = '10px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText(`${r}ms`, x + 25, 460 + 65);
+      ctx.fillText(`${r}ms`, x + 25, 420 + 65);
     });
 
     const rating = speed >= 100 ? 'Excellent' : speed >= 50 ? 'Good' : speed >= 20 ? 'Fair' : 'Slow';
-    ctx.fillStyle = '#334155';
-    ctx.beginPath();
-    ctx.roundRect(50, 540, 700, 45, 8);
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1;
+    drawRoundedRect(ctx, 50, 510, 700, 50, 8);
     ctx.fill();
+    ctx.stroke();
     ctx.fillStyle = '#22d3ee';
-    ctx.font = 'bold 16px Arial';
+    ctx.font = 'bold 15px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(`www.sajhanet.com  |  ${speed} Mbps  |  ${ping}ms ping  |  ${rating}`, 400, 568);
+    ctx.fillText(`www.sajhanet.com  |  ${speed} Mbps  |  ${ping}ms ping  |  ${rating}`, 400, 540);
 
     const link = document.createElement('a');
     link.download = `sajha-net-speed-test-${Date.now()}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
   }, [speed, ping, pingResults, downloadSize, downloadTime, testSize, formatBytes]);
-
-  const formatBytes = (bytes) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / 1048576).toFixed(1)} MB`;
-  };
 
   return (
     <div className="pt-24 pb-16 min-h-screen">
