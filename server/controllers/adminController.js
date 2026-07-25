@@ -48,7 +48,23 @@ exports.getAllUsers = async (req, res) => {
     if (role) query.role = role;
     const users = await User.find(query).select('-password').sort('-createdAt').skip((page - 1) * limit).limit(parseInt(limit));
     const total = await User.countDocuments(query);
-    res.json({ success: true, users, total, pages: Math.ceil(total / limit) });
+
+    const Payment = require('../models/Payment');
+    const enriched = await Promise.all(users.map(async (u) => {
+      const app = await Application.findOne({ user: u._id }).sort({ createdAt: -1 }).populate('package', 'name speed');
+      const payment = await Payment.findOne({ user: u._id, status: 'completed' }).sort({ paidAt: -1 }).populate('package', 'name speed');
+      return {
+        ...u.toObject(),
+        packageName: app?.package?.name || payment?.package?.name || null,
+        packageSpeed: app?.package?.speed || payment?.package?.speed || null,
+        paymentStatus: app?.paymentStatus || 'unpaid',
+        paymentMethod: app?.paymentMethod || payment?.method || '',
+        paymentDuration: app?.paymentDuration || payment?.duration || '',
+        expiryDate: app?.expiryDate || null,
+      };
+    }));
+
+    res.json({ success: true, users: enriched, total, pages: Math.ceil(total / limit) });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
