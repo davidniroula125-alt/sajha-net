@@ -281,22 +281,15 @@ export default function SpeedTest() {
       '<text x="300" y="465" text-anchor="middle" fill="#22d3ee" font-family="Arial,sans-serif" font-weight="bold" font-size="13">www.sajhanet.com  |  ' + speed + ' Mbps  |  ' + ping + 'ms ping  |  ' + rating + '</text>' +
       '</svg>';
 
-    var encodedSvg = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgContent);
-    var img = new Image();
-    img.onload = function() {
-      var c = document.createElement('canvas');
-      c.width = 600;
-      c.height = 490;
-      var cx = c.getContext('2d');
-      cx.drawImage(img, 0, 0, 600, 490);
-      var link = document.createElement('a');
-      link.download = 'sajha-net-speed-test-' + Date.now() + '.png';
-      link.href = c.toDataURL('image/png');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    };
-    img.src = encodedSvg;
+    var blob = new Blob([svgContent], { type: 'image/svg+xml' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'sajha-net-speed-test-' + Date.now() + '.svg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }, [speed, ping, pingResults, downloadSize, downloadTime, testSize, formatBytes]);
 
   var minPing = pingResults.length > 0 ? Math.min.apply(null, pingResults.filter(function(r) { return r > 0; })) : 0;
