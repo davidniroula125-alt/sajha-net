@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiCheck, FiWifi, FiStar, FiFilter } from 'react-icons/fi';
+import { Section, SectionTitle, Badge, Button } from '../components/common/UIComponents';
 import { packageAPI } from '../services/api';
 
 export default function Packages() {

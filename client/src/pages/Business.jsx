@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiBriefcase, FiShield, FiCloud, FiWifi, FiGlobe, FiServer, FiCheck } from 'react-icons/fi';
+import { Section, SectionTitle, Button } from '../components/common/UIComponents';
 import { packageAPI, serviceAPI } from '../services/api';
 
 export default function Business() {
