@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { FiWifi, FiDownload, FiClock, FiActivity, FiRefreshCw, FiCheck, FiFileText, FiArrowDown } from 'react-icons/fi';
+import html2canvas from 'html2canvas';
 import { Section } from '../components/common/UIComponents';
 
 const TEST_SIZES = [5, 10, 25];
@@ -96,6 +97,7 @@ export default function SpeedTest() {
   const [testSize, setTestSize] = useState(10);
   const [activeTab, setActiveTab] = useState('download');
   const abortRef = useRef(null);
+  const resultCardRef = useRef(null);
   const gaugeMax = testSize <= 5 ? 100 : testSize <= 10 ? 200 : GAUGE_MAX;
 
   const runPing = useCallback(async (onPing) => {
@@ -147,7 +149,7 @@ export default function SpeedTest() {
     abortRef.current = controller;
 
     try {
-      const { avg, results } = await runPing((ms, n) => {
+      const { avg, results } = await runPing((ms) => {
         setPingResults(prev => [...prev, ms]);
         setPing(ms);
       });
@@ -236,141 +238,25 @@ export default function SpeedTest() {
     return `${(bytes / 1048576).toFixed(1)} MB`;
   };
 
-  const drawRoundedRect = (ctx, x, y, w, h, r) => {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.arcTo(x + w, y, x + w, y + r, r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-    ctx.lineTo(x + r, y + h);
-    ctx.arcTo(x, y + h, x, y + h - r, r);
-    ctx.lineTo(x, y + r);
-    ctx.arcTo(x, y, x + r, y, r);
-    ctx.closePath();
-  };
+  const downloadResults = useCallback(async () => {
+    if (!resultCardRef.current) return;
+    try {
+      const canvas = await html2canvas(resultCardRef.current, {
+        backgroundColor: '#0f172a',
+        scale: 2,
+        useCORS: true,
+      });
+      const link = document.createElement('a');
+      link.download = `sajha-net-speed-test-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error('Download failed:', err);
+    }
+  }, []);
 
-  const downloadResults = useCallback(() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 800;
-    canvas.height = 620;
-    const ctx = canvas.getContext('2d');
-
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(0, 0, 800, 620);
-
-    const grad = ctx.createLinearGradient(0, 0, 800, 620);
-    grad.addColorStop(0, '#0f172a');
-    grad.addColorStop(1, '#1e293b');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 800, 620);
-
-    ctx.fillStyle = '#22d3ee';
-    ctx.font = 'bold 14px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('SAJHA NET', 400, 30);
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 26px Arial';
-    ctx.fillText('Speed Test Results', 400, 58);
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '14px Arial';
-    ctx.fillText(new Date().toLocaleString(), 400, 80);
-
-    ctx.strokeStyle = '#334155';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(50, 95);
-    ctx.lineTo(750, 95);
-    ctx.stroke();
-
-    ctx.fillStyle = '#22d3ee';
-    ctx.font = 'bold 18px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText('DOWNLOAD SPEED', 80, 130);
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 52px Arial';
-    ctx.fillText(`${speed}`, 80, 190);
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '20px Arial';
-    ctx.fillText('Mbps', 80 + ctx.measureText(`${speed}`).width + 10, 190);
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '14px Arial';
-    ctx.fillText(`Downloaded: ${formatBytes(downloadSize)}   |   Time: ${downloadTime}s   |   Test Size: ${testSize} MB`, 80, 220);
-
-    ctx.strokeStyle = '#334155';
-    ctx.beginPath();
-    ctx.moveTo(50, 240);
-    ctx.lineTo(750, 240);
-    ctx.stroke();
-
-    ctx.fillStyle = '#22d3ee';
-    ctx.font = 'bold 18px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText('LATENCY (PING)', 80, 275);
-
-    const minPing = pingResults.length > 0 ? Math.min(...pingResults.filter(r => r > 0)) : 0;
-    const maxPing = pingResults.length > 0 ? Math.max(...pingResults.filter(r => r > 0)) : 0;
-
-    const pingBoxes = [
-      { label: 'Average', value: `${ping} ms`, color: '#ffffff' },
-      { label: 'Minimum', value: `${minPing} ms`, color: '#22c55e' },
-      { label: 'Maximum', value: `${maxPing} ms`, color: '#ef4444' }
-    ];
-    pingBoxes.forEach((box, i) => {
-      const x = 80 + i * 230;
-      ctx.fillStyle = '#1e293b';
-      ctx.strokeStyle = '#475569';
-      ctx.lineWidth = 1;
-      drawRoundedRect(ctx, x, 295, 200, 70, 8);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(box.label, x + 100, 318);
-      ctx.fillStyle = box.color;
-      ctx.font = 'bold 22px Arial';
-      ctx.fillText(box.value, x + 100, 350);
-    });
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '12px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText('Ping History:', 80, 405);
-    const validPings = pingResults.filter(r => r > 0);
-    const barMax = validPings.length > 0 ? Math.max(...validPings) : 1;
-    validPings.forEach((r, i) => {
-      const x = 80 + i * 65;
-      const barH = Math.max((r / barMax) * 50, 4);
-      ctx.fillStyle = r < 30 ? '#22c55e' : r < 80 ? '#f59e0b' : '#ef4444';
-      ctx.fillRect(x, 420 + (50 - barH), 50, barH);
-      ctx.fillStyle = '#e2e8f0';
-      ctx.font = '10px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(`${r}ms`, x + 25, 420 + 65);
-    });
-
-    const rating = speed >= 100 ? 'Excellent' : speed >= 50 ? 'Good' : speed >= 20 ? 'Fair' : 'Slow';
-    ctx.fillStyle = '#1e293b';
-    ctx.strokeStyle = '#475569';
-    ctx.lineWidth = 1;
-    drawRoundedRect(ctx, 50, 510, 700, 50, 8);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = '#22d3ee';
-    ctx.font = 'bold 15px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(`www.sajhanet.com  |  ${speed} Mbps  |  ${ping}ms ping  |  ${rating}`, 400, 540);
-
-    const link = document.createElement('a');
-    link.download = `sajha-net-speed-test-${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-  }, [speed, ping, pingResults, downloadSize, downloadTime, testSize, formatBytes]);
+  const minPing = pingResults.length > 0 ? Math.min(...pingResults.filter(r => r > 0)) : 0;
+  const maxPing = pingResults.length > 0 ? Math.max(...pingResults.filter(r => r > 0)) : 0;
 
   return (
     <div className="pt-24 pb-16 min-h-screen">
@@ -484,12 +370,12 @@ export default function SpeedTest() {
                       </div>
                       <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
                         <FiClock className="w-5 h-5 text-green-500 mx-auto mb-2" />
-                        <p className="text-xl font-bold text-gray-900 dark:text-white">{pingResults.length > 0 ? Math.min(...pingResults.filter(r => r > 0)) : 0}</p>
+                        <p className="text-xl font-bold text-gray-900 dark:text-white">{minPing}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Min (ms)</p>
                       </div>
                       <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
                         <FiClock className="w-5 h-5 text-red-500 mx-auto mb-2" />
-                        <p className="text-xl font-bold text-gray-900 dark:text-white">{pingResults.length > 0 ? Math.max(...pingResults.filter(r => r > 0)) : 0}</p>
+                        <p className="text-xl font-bold text-gray-900 dark:text-white">{maxPing}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Max (ms)</p>
                       </div>
                     </div>
@@ -548,6 +434,69 @@ export default function SpeedTest() {
           </div>
         </div>
       </Section>
+
+      {status === 'done' && (
+        <div className="fixed -left-[9999px] top-0">
+          <div ref={resultCardRef} style={{ width: '600px', padding: '32px', background: 'linear-gradient(135deg, #0f172a, #1e293b)', color: '#fff', fontFamily: 'Arial, sans-serif' }}>
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#22d3ee', letterSpacing: '2px' }}>SAJHA NET</div>
+              <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#fff', marginTop: '4px' }}>Speed Test Results</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>{new Date().toLocaleString()}</div>
+            </div>
+
+            <hr style={{ border: 'none', borderTop: '1px solid #334155', margin: '16px 0' }} />
+
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#22d3ee' }}>DOWNLOAD SPEED</div>
+              <div style={{ fontSize: '40px', fontWeight: 'bold', color: '#fff', marginTop: '4px' }}>{speed} <span style={{ fontSize: '16px', color: '#94a3b8' }}>Mbps</span></div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                Downloaded: {formatBytes(downloadSize)} | Time: {downloadTime}s | Test Size: {testSize} MB
+              </div>
+            </div>
+
+            <hr style={{ border: 'none', borderTop: '1px solid #334155', margin: '16px 0' }} />
+
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#22d3ee' }}>LATENCY (PING)</div>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+                {[
+                  { label: 'Average', value: `${ping} ms`, color: '#fff' },
+                  { label: 'Minimum', value: `${minPing} ms`, color: '#22c55e' },
+                  { label: 'Maximum', value: `${maxPing} ms`, color: '#ef4444' }
+                ].map((box, i) => (
+                  <div key={i} style={{ flex: 1, background: '#1e293b', border: '1px solid #475569', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '11px', color: '#94a3b8' }}>{box.label}</div>
+                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: box.color, marginTop: '4px' }}>{box.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {pingResults.length > 0 && (
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '6px' }}>Ping History</div>
+                <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end' }}>
+                  {pingResults.filter(r => r > 0).map((r, i) => {
+                    const maxVal = Math.max(...pingResults.filter(x => x > 0), 1);
+                    const barH = Math.max((r / maxVal) * 40, 4);
+                    const color = r < 30 ? '#22c55e' : r < 80 ? '#f59e0b' : '#ef4444';
+                    return (
+                      <div key={i} style={{ textAlign: 'center' }}>
+                        <div style={{ width: '40px', height: `${barH}px`, background: color, borderRadius: '3px' }} />
+                        <div style={{ fontSize: '9px', color: '#e2e8f0', marginTop: '2px' }}>{r}ms</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div style={{ textAlign: 'center', background: '#1e293b', border: '1px solid #475569', borderRadius: '8px', padding: '10px', fontSize: '13px', color: '#22d3ee', fontWeight: 'bold' }}>
+              www.sajhanet.com | {speed} Mbps | {ping}ms ping | {speed >= 100 ? 'Excellent' : speed >= 50 ? 'Good' : speed >= 20 ? 'Fair' : 'Slow'}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
