@@ -5,6 +5,7 @@ import { io } from 'socket.io-client';
 import API from '../../services/api';
 
 const quickReplies = [
+  { label: 'Check My Connection', icon: FiUser, message: '__check_connection__' },
   { label: 'Packages & Pricing', icon: FiPackage, message: 'What packages do you offer?' },
   { label: 'Check Coverage', icon: FiMapPin, message: 'Is service available in my area?' },
   { label: 'How to Apply', icon: FiArrowRight, message: 'How do I apply for a connection?' },
@@ -70,6 +71,8 @@ export default function Chatbot() {
   const [sessionId] = useState(() => 'chat-' + Date.now());
   const [isTyping, setIsTyping] = useState(false);
   const [showQuickReplyPanel, setShowQuickReplyPanel] = useState(true);
+  const [lookupStep, setLookupStep] = useState('idle');
+  const [lookupPhone, setLookupPhone] = useState('');
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -93,6 +96,8 @@ export default function Chatbot() {
   const getBotResponse = (msg) => {
     const lower = msg.toLowerCase();
 
+    if (lower === '__check_connection__') return { type: 'lookup_start' };
+    if (lower.includes('my connection') || lower.includes('my expiry') || lower.includes('my subscription') || lower.includes('check expiry') || lower.includes('expiry date')) return { type: 'lookup_start' };
     if (lower.includes('package') || lower.includes('plan') || lower.includes('offer')) return botResponses.package;
     if (lower.includes('price') || lower.includes('cost') || lower.includes('rate') || lower.includes('charge')) return botResponses.price;
     if (lower.includes('speed') || lower.includes('mbps') || lower.includes('gbps') || lower.includes('fast')) return botResponses.speed;
@@ -116,7 +121,63 @@ export default function Chatbot() {
     return { text: "I'd be happy to help! Let me understand your question better.\n\nYou can ask me about:\n- Internet packages & pricing\n- Coverage in your area\n- How to apply\n- Payment methods\n- Business plans\n- Technical support\n\nOr click a quick reply below!", followUp: quickReplies.slice(0, 4).map(q => ({ label: q.label, action: 'quick_' + q.label.toLowerCase().replace(/\s/g, '_') })) };
   };
 
+  const performLookup = async (phone, lastName) => {
+    try {
+      const res = await API.post('/chat/lookup', { phone, lastName });
+      const data = res.data;
+      let text = '';
+      if (data.expiryDate) {
+        const expDate = new Date(data.expiryDate);
+        const now = new Date();
+        const diffMs = expDate - now;
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+        text = 'Hello ' + data.name + '! 👋\n\n';
+        text += '📦 Current Package: ' + (data.currentPackage || 'N/A') + '\n';
+        text += '⚡ Speed: ' + (data.currentSpeed || 'N/A') + ' Mbps\n';
+        text += '📅 Expiry Date: ' + expDate.toLocaleDateString('en-NP', { year: 'numeric', month: 'long', day: 'numeric' }) + '\n';
+
+        if (data.isExpired) {
+          text += '\n⚠️ Your subscription has EXPIRED!\nPlease renew to continue enjoying our service.';
+        } else if (diffDays <= 7) {
+          text += '\n⏰ Your subscription expires in ' + diffDays + ' day(s)!\nPlease renew soon to avoid disconnection.';
+        } else {
+          text += '\n✅ Your connection is active. ' + diffDays + ' days remaining.';
+        }
+      } else {
+        text = 'Hello ' + data.name + '!\n\nWe found your account but there are no payment records yet.\nPlease make a payment to activate your connection.';
+      }
+
+      if (data.packages && data.packages.length > 0) {
+        text += '\n\n📋 Available Packages:\n';
+        data.packages.slice(0, 5).forEach(p => {
+          text += '\n• ' + p.name + ' - ' + p.speed + ' Mbps';
+          if (p.price) {
+            text += ' (Rs. ' + (p.price.yearly || 0) + '/yr)';
+          }
+        });
+      }
+
+      return { text, followUp: [{ label: 'Renew Now', action: 'link_apply' }, { label: 'View Packages', action: 'link_packages' }] };
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Could not find your account. Please check your phone number and last name.';
+      return { text: '❌ ' + msg + '\n\nPlease try again or contact our support at 9705390890.', followUp: [{ label: 'Try Again', action: '__check_connection__' }, { label: 'Talk to Agent', action: 'agent' }] };
+    }
+  };
+
   const handleQuickReply = (message) => {
+    if (message === '__check_connection__') {
+      const userMsg = { sender: 'user', content: 'Check My Connection', timestamp: new Date() };
+      setMessages(prev => [...prev, userMsg]);
+      setLookupStep('waiting_phone');
+      setLookupPhone('');
+      setTimeout(() => {
+        setMessages(prev => [...prev, { sender: 'bot', content: 'Sure! I can help you check your connection details. 📱\n\nPlease enter your registered phone number:', timestamp: new Date() }]);
+        setIsTyping(false);
+      }, 500);
+      return;
+    }
+
     const userMsg = { sender: 'user', content: message, timestamp: new Date() };
     setMessages(prev => [...prev, userMsg]);
     setIsTyping(true);
@@ -125,6 +186,13 @@ export default function Chatbot() {
 
     setTimeout(() => {
       const response = getBotResponse(message);
+      if (response.type === 'lookup_start') {
+        setLookupStep('waiting_phone');
+        setLookupPhone('');
+        setMessages(prev => [...prev, { sender: 'bot', content: 'Sure! I can help you check your connection details. 📱\n\nPlease enter your registered phone number:', timestamp: new Date() }]);
+        setIsTyping(false);
+        return;
+      }
       const botMsg = { sender: 'bot', content: response.text, timestamp: new Date(), followUp: response.followUp || [] };
       setMessages(prev => [...prev, botMsg]);
       setIsTyping(false);
@@ -143,19 +211,50 @@ export default function Chatbot() {
 
   const handleSend = async () => {
     if (!input.trim()) return;
-    const userMsg = { sender: 'user', content: input, timestamp: new Date() };
+    const text = input.trim();
+    const userMsg = { sender: 'user', content: text, timestamp: new Date() };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
-    setIsTyping(true);
 
-    try { await API.post('/chat/send', { sessionId, content: input, sender: 'user' }); } catch {}
+    if (lookupStep === 'waiting_phone') {
+      setLookupPhone(text);
+      setLookupStep('waiting_lastname');
+      setIsTyping(true);
+      setTimeout(() => {
+        setMessages(prev => [...prev, { sender: 'bot', content: 'Got it! Now please enter your last name (as registered):', timestamp: new Date() }]);
+        setIsTyping(false);
+      }, 500);
+      return;
+    }
 
-    setTimeout(() => {
-      const response = getBotResponse(input);
+    if (lookupStep === 'waiting_lastname') {
+      setLookupStep('idle');
+      setIsTyping(true);
+      try { await API.post('/chat/send', { sessionId, content: '__lookup__', sender: 'user' }); } catch {}
+      const response = await performLookup(lookupPhone, text);
       const botMsg = { sender: 'bot', content: response.text, timestamp: new Date(), followUp: response.followUp || [] };
       setMessages(prev => [...prev, botMsg]);
       setIsTyping(false);
-      try { API.post('/chat/send', { sessionId, content: response.text, sender: 'bot' }); } catch {}
+      try { await API.post('/chat/send', { sessionId, content: response.text, sender: 'bot' }); } catch {}
+      return;
+    }
+
+    setIsTyping(true);
+    try { await API.post('/chat/send', { sessionId, content: text, sender: 'user' }); } catch {}
+
+    setTimeout(async () => {
+      const response = getBotResponse(text);
+      if (response.type === 'lookup_start') {
+        setLookupStep('waiting_phone');
+        setLookupPhone('');
+        setMessages(prev => [...prev, { sender: 'bot', content: 'Sure! I can help you check your connection details. 📱\n\nPlease enter your registered phone number:', timestamp: new Date() }]);
+        setIsTyping(false);
+        return;
+      }
+      const botMsg = { sender: 'bot', content: response.text, timestamp: new Date(), followUp: response.followUp || [] };
+      setMessages(prev => [...prev, botMsg]);
+      setIsTyping(false);
+      try { await API.post('/chat/send', { sessionId, content: response.text, sender: 'bot' }); } catch {}
     }, 1000);
   };
 
