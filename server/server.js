@@ -22,6 +22,7 @@ const serviceRoutes = require('./routes/services');
 const testimonialRoutes = require('./routes/testimonials');
 const faqRoutes = require('./routes/faqs');
 const offerRoutes = require('./routes/offers');
+const portalRoutes = require('./routes/portal');
 
 const app = express();
 const server = http.createServer(app);
@@ -93,6 +94,7 @@ app.use('/api/cms', require('./routes/cms'));
 app.use('/api/complaints', require('./routes/complaints'));
 app.use('/api/feedbacks', require('./routes/feedbacks'));
 app.use('/api/speed-test', require('./routes/speedTest'));
+app.use('/api/portal', portalRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });

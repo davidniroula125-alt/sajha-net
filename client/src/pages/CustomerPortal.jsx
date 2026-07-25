@@ -1,13 +1,25 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiGrid, FiFileText, FiCreditCard, FiSettings, FiLogOut, FiUser } from 'react-icons/fi';
-import { Section, Button } from '../components/common/UIComponents';
+import { FiGrid, FiFileText, FiCreditCard, FiLogOut, FiUser, FiClock, FiAlertTriangle, FiCheckCircle } from 'react-icons/fi';
+import { Button } from '../components/common/UIComponents';
 import { useAuth } from '../context/AuthContext';
+import API from '../services/api';
 
 export default function CustomerPortal() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [subscription, setSubscription] = useState(null);
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      API.get('/portal/subscription').then(({ data }) => {
+        setSubscription(data.subscription);
+        setPayments(data.payments || []);
+      }).catch(() => {}).finally(() => setLoading(false));
+    }
+  }, [user]);
 
   if (!user) {
     return (
@@ -26,6 +38,11 @@ export default function CustomerPortal() {
     { id: 'usage', label: 'Usage', icon: FiCreditCard },
     { id: 'profile', label: 'Profile', icon: FiUser },
   ];
+
+  const sub = subscription || {};
+  const pkg = sub.package;
+  const expiry = sub.expiryDate ? new Date(sub.expiryDate) : null;
+  const expiryStr = expiry ? expiry.toLocaleDateString('en-NP', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
 
   return (
     <div className="pt-24 pb-16 min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -65,28 +82,74 @@ export default function CustomerPortal() {
             {activeTab === 'dashboard' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Dashboard</h2>
+
                 <div className="grid md:grid-cols-3 gap-6 mb-6">
-                  {[
-                    { label: 'Current Plan', value: '100 Mbps', color: 'text-primary-500' },
-                    { label: 'Status', value: 'Active', color: 'text-success-500' },
-                    { label: 'Next Bill', value: 'Rs. 1,199', color: 'text-secondary-500' },
-                  ].map((s, i) => (
-                    <div key={i} className="card p-6">
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{s.label}</p>
-                      <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="card p-6">
-                  <h3 className="font-bold text-gray-900 dark:text-white mb-4">Recent Activity</h3>
-                  <div className="space-y-3">
-                    {['Bill paid - Rs. 1,199', 'Connection installed', 'Account created'].map((a, i) => (
-                      <div key={i} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
-                        <span className="text-gray-600 dark:text-gray-400 text-sm">{a}</span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">2 days ago</span>
-                      </div>
-                    ))}
+                  <div className="card p-6">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Current Plan</p>
+                    <p className="text-2xl font-bold text-primary-500">{pkg ? pkg.name : 'No Plan'}</p>
+                    {pkg && <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">{pkg.speed} Mbps</p>}
                   </div>
+                  <div className="card p-6">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Payment Status</p>
+                    {loading ? (
+                      <p className="text-lg text-gray-400">Loading...</p>
+                    ) : sub.paymentStatus === 'paid' ? (
+                      <p className="text-2xl font-bold text-green-500 flex items-center gap-2"><FiCheckCircle /> Paid</p>
+                    ) : (
+                      <p className="text-2xl font-bold text-red-500 flex items-center gap-2"><FiAlertTriangle /> Unpaid</p>
+                    )}
+                  </div>
+                  <div className="card p-6">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Expiry Date</p>
+                    {loading ? (
+                      <p className="text-lg text-gray-400">Loading...</p>
+                    ) : sub.isExpired ? (
+                      <p className="text-2xl font-bold text-red-500 flex items-center gap-2"><FiAlertTriangle /> Expired</p>
+                    ) : (
+                      <p className="text-2xl font-bold text-success-500 flex items-center gap-2"><FiClock /> {expiryStr}</p>
+                    )}
+                    {!loading && !sub.isExpired && sub.daysRemaining > 0 && (
+                      <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">{sub.daysRemaining} days remaining</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="card p-6">
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-4">Connection Details</h3>
+                  {loading ? (
+                    <p className="text-gray-400">Loading...</p>
+                  ) : sub.package ? (
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Package</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{pkg?.name || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Speed</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{pkg?.speed || 'N/A'} Mbps</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Duration</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white capitalize">{sub.duration || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Payment Method</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white capitalize">{sub.paymentMethod || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Expiry Date</span>
+                        <span className={`text-sm font-medium ${sub.isExpired ? 'text-red-500' : 'text-green-500'}`}>{expiryStr}</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Status</span>
+                        <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${sub.isExpired ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                          {sub.isExpired ? 'Expired' : 'Active'}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 dark:text-gray-400">No active subscription found. Apply for a connection to get started!</p>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -99,20 +162,26 @@ export default function CustomerPortal() {
                     <thead className="bg-gray-50 dark:bg-gray-800">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Date</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Package</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Duration</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Amount</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Method</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Invoice</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                      {[
-                        { date: '2026-01-15', amount: 'Rs. 1,199', status: 'Paid' },
-                        { date: '2025-12-15', amount: 'Rs. 1,199', status: 'Paid' },
-                        { date: '2025-11-15', amount: 'Rs. 1,199', status: 'Paid' },
-                      ].map((b, i) => (
+                      {loading ? (
+                        <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-400">Loading...</td></tr>
+                      ) : payments.length === 0 ? (
+                        <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-400">No payment records found</td></tr>
+                      ) : payments.map((b, i) => (
                         <tr key={i}>
-                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{b.date}</td>
-                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{b.amount}</td>
-                          <td className="px-6 py-4"><span className="px-2 py-1 bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-300 rounded-full text-xs">{b.status}</span></td>
+                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{b.date ? new Date(b.date).toLocaleDateString() : 'N/A'}</td>
+                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{b.package}</td>
+                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-white capitalize">{b.duration || 'N/A'}</td>
+                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">Rs. {b.amount?.toLocaleString()}</td>
+                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-white capitalize">{b.method}</td>
+                          <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{b.invoice}</td>
                         </tr>
                       ))}
                     </tbody>
