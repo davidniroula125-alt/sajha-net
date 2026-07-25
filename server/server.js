@@ -97,7 +97,7 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Auto-migration: convert old-format price objects to Number on startup
+// Auto-migration: convert old-format price objects to Number + backfill prices on startup
 (async () => {
   try {
     const Package = require('./models/Package');
@@ -107,9 +107,35 @@ app.get('/api/health', (req, res) => {
         const yearlyPrice = pkg.price?.yearly || pkg.price?.monthly || 0;
         pkg.price = yearlyPrice;
         pkg.billingCycle = 'yearly';
+        pkg.prices = {
+          yearly: yearlyPrice,
+          halfYearly: Math.round(yearlyPrice / 2),
+          quarterly: Math.round(yearlyPrice / 4),
+          monthly: Math.round(yearlyPrice / 12)
+        };
         await pkg.save();
       }
       console.log(`Migrated ${oldPkgs.length} old-format package(s) to new price format.`);
+    }
+
+    // Backfill prices for packages missing the prices object
+    const pkgsNoPrices = await Package.find({ $or: [
+      { 'prices.yearly': { $exists: false } },
+      { 'prices': { $type: 'null' } },
+      { 'prices.yearly': 0, price: { $gt: 0 } }
+    ] });
+    for (const pkg of pkgsNoPrices) {
+      const yearlyPrice = pkg.price || 0;
+      pkg.prices = {
+        yearly: yearlyPrice,
+        halfYearly: Math.round(yearlyPrice / 2),
+        quarterly: Math.round(yearlyPrice / 4),
+        monthly: Math.round(yearlyPrice / 12)
+      };
+      await pkg.save();
+    }
+    if (pkgsNoPrices.length > 0) {
+      console.log(`Backfilled prices for ${pkgsNoPrices.length} package(s).`);
     }
   } catch (err) {
     console.error('Migration error:', err.message);
@@ -138,15 +164,15 @@ app.get('/api/health', (req, res) => {
       }
 
       await Package.insertMany([
-        { name: 'Bronze', slug: 'bronze', speed: 80, type: 'internet', billingCycle: 'yearly', price: 6500, installationCharge: 0, features: ['Unlimited Internet', 'FREE WiFi Router', 'FREE Drop Wire', 'Fiber Connection', '24/7 Support'], includes: { router: true, mesh: false, tv: false, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Browsing', 'Social Media', 'Light Streaming'], isPopular: false, sortOrder: 1, description: 'Bronze package — 80 Mbps fiber internet.', shortDescription: '80 Mbps Fiber Internet' },
-        { name: 'Silver', slug: 'silver', speed: 100, type: 'internet', billingCycle: 'yearly', price: 7500, installationCharge: 0, features: ['Unlimited Internet', 'FREE WiFi Router', 'FREE Drop Wire', 'Fiber Connection', '24/7 Support'], includes: { router: true, mesh: false, tv: false, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Family', 'Streaming', 'HD Video'], isPopular: true, sortOrder: 2, description: 'Silver package — 100 Mbps fiber internet.', shortDescription: '100 Mbps Fiber Internet' },
-        { name: 'Gold', slug: 'gold', speed: 150, type: 'internet', billingCycle: 'yearly', price: 8500, installationCharge: 0, features: ['Unlimited Internet', 'FREE WiFi Router', 'FREE Drop Wire', 'Fiber Connection', '24/7 Support'], includes: { router: true, mesh: false, tv: false, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Multiple Devices', 'HD Streaming', 'Gaming'], isRecommended: true, sortOrder: 3, description: 'Gold package — 150 Mbps fiber internet.', shortDescription: '150 Mbps Fiber Internet' },
-        { name: 'Platinum', slug: 'platinum', speed: 200, type: 'internet', billingCycle: 'yearly', price: 9500, installationCharge: 0, features: ['Unlimited Internet', 'FREE WiFi Router', 'FREE Drop Wire', 'Fiber Connection', '24/7 Support'], includes: { router: true, mesh: false, tv: false, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Power Users', '4K Streaming', 'Multiple Users'], isRecommended: true, sortOrder: 4, description: 'Platinum package — 200 Mbps fiber internet.', shortDescription: '200 Mbps Fiber Internet' },
-        { name: 'Essential', slug: 'essential', speed: 80, type: 'combo', billingCycle: 'yearly', price: 8500, installationCharge: 0, features: ['Unlimited Internet', 'IP TV Included', 'FREE WiFi Router', 'FREE Drop Wire', 'Fiber Connection', '24/7 Support'], includes: { router: true, mesh: false, tv: true, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Entertainment', 'Family', 'TV + Internet'], sortOrder: 5, description: 'Essential combo — 80 Mbps internet + IP TV.', shortDescription: '80 Mbps + IP TV Bundle' },
-        { name: 'Enhanced', slug: 'enhanced', speed: 150, type: 'combo', billingCycle: 'yearly', price: 9500, installationCharge: 0, features: ['Unlimited Internet', 'IP TV Included', 'FREE WiFi Router', 'FREE Drop Wire', 'Fiber Connection', '24/7 Support'], includes: { router: true, mesh: false, tv: true, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Family Entertainment', 'HD Streaming + TV'], isPopular: true, sortOrder: 6, description: 'Enhanced combo — 150 Mbps internet + IP TV.', shortDescription: '150 Mbps + IP TV Bundle' },
-        { name: 'Premium', slug: 'premium', speed: 200, type: 'combo', billingCycle: 'yearly', price: 10500, installationCharge: 0, features: ['Unlimited Internet', 'IP TV Included', 'FREE WiFi Router', 'FREE Drop Wire', 'Fiber Connection', '24/7 Support'], includes: { router: true, mesh: false, tv: true, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Ultimate Bundle', 'Power Users', '4K + TV'], isRecommended: true, sortOrder: 7, description: 'Premium combo — 200 Mbps internet + IP TV.', shortDescription: '200 Mbps + IP TV Bundle' },
-        { name: 'Business Starter', slug: 'business-starter', speed: 100, type: 'business', billingCycle: 'yearly', price: 7500, installationCharge: 0, features: ['100 Mbps Dedicated', 'Fiber Connection', '99.9% Uptime SLA', '24x7 Priority Support', 'Static IP', 'FREE Router', 'FREE Drop Wire'], includes: { router: true, mesh: false, tv: false, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Small Business', 'Startups'], sortOrder: 8, description: 'Business Starter — 100 Mbps dedicated fiber.', shortDescription: '100 Mbps Business Internet' },
-        { name: 'Business Pro', slug: 'business-pro', speed: 300, type: 'business', billingCycle: 'yearly', price: 15000, installationCharge: 0, features: ['300 Mbps Dedicated', 'Fiber Connection', '99.99% Uptime SLA', '24x7 Priority Support', 'Static IP', 'Managed WiFi', 'FREE Router', 'FREE Drop Wire'], includes: { router: true, mesh: true, tv: false, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Growing Business', 'Offices'], isRecommended: true, sortOrder: 9, description: 'Business Pro — 300 Mbps dedicated fiber.', shortDescription: '300 Mbps Business Internet' }
+        { name: 'Bronze', slug: 'bronze', speed: 80, type: 'internet', billingCycle: 'yearly', price: 6500, prices: { yearly: 6500, halfYearly: 3250, quarterly: 1625, monthly: 542 }, installationCharge: 0, features: ['Unlimited Internet', 'FREE WiFi Router', 'FREE Drop Wire', 'Fiber Connection', '24/7 Support'], includes: { router: true, mesh: false, tv: false, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Browsing', 'Social Media', 'Light Streaming'], isPopular: false, sortOrder: 1, description: 'Bronze package — 80 Mbps fiber internet.', shortDescription: '80 Mbps Fiber Internet' },
+        { name: 'Silver', slug: 'silver', speed: 100, type: 'internet', billingCycle: 'yearly', price: 7500, prices: { yearly: 7500, halfYearly: 3750, quarterly: 1875, monthly: 625 }, installationCharge: 0, features: ['Unlimited Internet', 'FREE WiFi Router', 'FREE Drop Wire', 'Fiber Connection', '24/7 Support'], includes: { router: true, mesh: false, tv: false, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Family', 'Streaming', 'HD Video'], isPopular: true, sortOrder: 2, description: 'Silver package — 100 Mbps fiber internet.', shortDescription: '100 Mbps Fiber Internet' },
+        { name: 'Gold', slug: 'gold', speed: 150, type: 'internet', billingCycle: 'yearly', price: 8500, prices: { yearly: 8500, halfYearly: 4250, quarterly: 2125, monthly: 708 }, installationCharge: 0, features: ['Unlimited Internet', 'FREE WiFi Router', 'FREE Drop Wire', 'Fiber Connection', '24/7 Support'], includes: { router: true, mesh: false, tv: false, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Multiple Devices', 'HD Streaming', 'Gaming'], isRecommended: true, sortOrder: 3, description: 'Gold package — 150 Mbps fiber internet.', shortDescription: '150 Mbps Fiber Internet' },
+        { name: 'Platinum', slug: 'platinum', speed: 200, type: 'internet', billingCycle: 'yearly', price: 9500, prices: { yearly: 9500, halfYearly: 4750, quarterly: 2375, monthly: 792 }, installationCharge: 0, features: ['Unlimited Internet', 'FREE WiFi Router', 'FREE Drop Wire', 'Fiber Connection', '24/7 Support'], includes: { router: true, mesh: false, tv: false, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Power Users', '4K Streaming', 'Multiple Users'], isRecommended: true, sortOrder: 4, description: 'Platinum package — 200 Mbps fiber internet.', shortDescription: '200 Mbps Fiber Internet' },
+        { name: 'Essential', slug: 'essential', speed: 80, type: 'combo', billingCycle: 'yearly', price: 8500, prices: { yearly: 8500, halfYearly: 4250, quarterly: 2125, monthly: 708 }, installationCharge: 0, features: ['Unlimited Internet', 'IP TV Included', 'FREE WiFi Router', 'FREE Drop Wire', 'Fiber Connection', '24/7 Support'], includes: { router: true, mesh: false, tv: true, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Entertainment', 'Family', 'TV + Internet'], sortOrder: 5, description: 'Essential combo — 80 Mbps internet + IP TV.', shortDescription: '80 Mbps + IP TV Bundle' },
+        { name: 'Enhanced', slug: 'enhanced', speed: 150, type: 'combo', billingCycle: 'yearly', price: 9500, prices: { yearly: 9500, halfYearly: 4750, quarterly: 2375, monthly: 792 }, installationCharge: 0, features: ['Unlimited Internet', 'IP TV Included', 'FREE WiFi Router', 'FREE Drop Wire', 'Fiber Connection', '24/7 Support'], includes: { router: true, mesh: false, tv: true, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Family Entertainment', 'HD Streaming + TV'], isPopular: true, sortOrder: 6, description: 'Enhanced combo — 150 Mbps internet + IP TV.', shortDescription: '150 Mbps + IP TV Bundle' },
+        { name: 'Premium', slug: 'premium', speed: 200, type: 'combo', billingCycle: 'yearly', price: 10500, prices: { yearly: 10500, halfYearly: 5250, quarterly: 2625, monthly: 875 }, installationCharge: 0, features: ['Unlimited Internet', 'IP TV Included', 'FREE WiFi Router', 'FREE Drop Wire', 'Fiber Connection', '24/7 Support'], includes: { router: true, mesh: false, tv: true, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Ultimate Bundle', 'Power Users', '4K + TV'], isRecommended: true, sortOrder: 7, description: 'Premium combo — 200 Mbps internet + IP TV.', shortDescription: '200 Mbps + IP TV Bundle' },
+        { name: 'Business Starter', slug: 'business-starter', speed: 100, type: 'business', billingCycle: 'yearly', price: 7500, prices: { yearly: 7500, halfYearly: 3750, quarterly: 1875, monthly: 625 }, installationCharge: 0, features: ['100 Mbps Dedicated', 'Fiber Connection', '99.9% Uptime SLA', '24x7 Priority Support', 'Static IP', 'FREE Router', 'FREE Drop Wire'], includes: { router: true, mesh: false, tv: false, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Small Business', 'Startups'], sortOrder: 8, description: 'Business Starter — 100 Mbps dedicated fiber.', shortDescription: '100 Mbps Business Internet' },
+        { name: 'Business Pro', slug: 'business-pro', speed: 300, type: 'business', billingCycle: 'yearly', price: 15000, prices: { yearly: 15000, halfYearly: 7500, quarterly: 3750, monthly: 1250 }, installationCharge: 0, features: ['300 Mbps Dedicated', 'Fiber Connection', '99.99% Uptime SLA', '24x7 Priority Support', 'Static IP', 'Managed WiFi', 'FREE Router', 'FREE Drop Wire'], includes: { router: true, mesh: true, tv: false, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Growing Business', 'Offices'], isRecommended: true, sortOrder: 9, description: 'Business Pro — 300 Mbps dedicated fiber.', shortDescription: '300 Mbps Business Internet' }
       ]);
 
       await Service.insertMany([

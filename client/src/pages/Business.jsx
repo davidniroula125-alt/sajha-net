@@ -5,11 +5,12 @@ import { FiBriefcase, FiShield, FiCloud, FiWifi, FiGlobe, FiServer, FiCheck } fr
 import { packageAPI, serviceAPI } from '../services/api';
 
 export default function Business() {
-  const getPriceDisplay = (pkg) => {
-    const price = typeof pkg.price === 'number' ? pkg.price : (pkg.price?.yearly || pkg.price?.monthly || 0);
-    const cycle = pkg.billingCycle || 'yearly';
-    const suffix = cycle === 'monthly' ? '/mo' : cycle === 'quarterly' ? '/3mo' : cycle === 'halfYearly' ? '/6mo' : '/yr';
-    return `Rs. ${price.toLocaleString()}${suffix}`;
+  const getYearlyPrice = (pkg) => pkg.prices?.yearly || pkg.price || 0;
+  const getMonthlyPrice = (pkg) => pkg.prices?.monthly || 0;
+
+  const formatPrice = (amount, cycle) => {
+    const suffix = { monthly: '/mo', quarterly: '/3mo', halfYearly: '/6mo', yearly: '/yr' };
+    return `Rs. ${amount.toLocaleString()}${suffix[cycle] || '/yr'}`;
   };
 
   const [plans, setPlans] = useState([]);
@@ -57,7 +58,8 @@ export default function Business() {
               {plan.isPopular && <span className="absolute top-4 right-4 gradient-bg text-white text-xs font-bold px-3 py-1 rounded-full">Recommended</span>}
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{plan.name}</h3>
               <p className="text-primary-500 font-semibold mb-4">{plan.speed} Mbps Dedicated</p>
-              <p className="text-3xl font-bold gradient-text mb-6">{getPriceDisplay(plan)}</p>
+              <p className="text-3xl font-bold gradient-text mb-1">{formatPrice(getYearlyPrice(plan), 'yearly')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{formatPrice(getMonthlyPrice(plan), 'monthly')} | {formatPrice(getYearlyPrice(plan), 'yearly')}</p>
               <ul className="space-y-3 mb-8">
                 {plan.features?.map((f, j) => (
                   <li key={j} className="flex items-center text-sm text-gray-600 dark:text-gray-400">

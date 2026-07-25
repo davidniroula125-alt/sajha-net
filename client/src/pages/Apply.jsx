@@ -19,10 +19,8 @@ export default function Apply() {
   }, []);
 
   const getPriceDisplay = (pkg) => {
-    const price = typeof pkg.price === 'number' ? pkg.price : (pkg.price?.yearly || pkg.price?.monthly || 0);
-    const cycle = pkg.billingCycle || 'yearly';
-    const suffix = cycle === 'monthly' ? '/mo' : cycle === 'quarterly' ? '/3mo' : cycle === 'halfYearly' ? '/6mo' : '/yr';
-    return `Rs. ${price.toLocaleString()}${suffix}`;
+    const price = pkg.prices?.yearly || pkg.price || 0;
+    return `Rs. ${price.toLocaleString()}/yr`;
   };
 
   const provinces = [

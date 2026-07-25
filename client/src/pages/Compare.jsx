@@ -59,8 +59,8 @@ export default function Compare() {
       return val;
     }
     if (typeof val === 'object') {
-      const price = val.yearly || val.monthly || 0;
-      return `Rs. ${price.toLocaleString()}`;
+      if (val.yearly || val.monthly) return `Rs. ${(val.yearly || val.monthly || 0).toLocaleString()}/yr`;
+      return String(Object.values(val).join(', '));
     }
     return String(val);
   };
@@ -117,7 +117,7 @@ export default function Compare() {
                         {pkg.isPopular && <FiStar className="w-4 h-4 text-yellow-500" />}
                         {pkg.name}
                       </div>
-                      <p className="text-xs text-primary-500 font-normal mt-1">{(pkg.billingCycle || 'yearly').charAt(0).toUpperCase() + (pkg.billingCycle || 'yearly').slice(1)}: Rs. {(pkg.price || 0).toLocaleString()}</p>
+                       <p className="text-xs text-primary-500 font-normal mt-1">{(pkg.billingCycle || 'yearly').charAt(0).toUpperCase() + (pkg.billingCycle || 'yearly').slice(1)}: Rs. {(pkg.prices?.yearly || pkg.price || 0).toLocaleString()}</p>
                     </th>
                   ))}
                 </tr>

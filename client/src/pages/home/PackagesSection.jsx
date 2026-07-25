@@ -17,12 +17,15 @@ export default function PackagesSection() {
   const comboPkgs = packages.filter(p => p.type === 'combo').sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   const businessPkgs = packages.filter(p => p.type === 'business').sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
-  const getPriceDisplay = (pkg) => {
-    const price = typeof pkg.price === 'number' ? pkg.price : (pkg.price?.yearly || pkg.price?.monthly || 0);
-    const cycle = pkg.billingCycle || 'yearly';
-    const suffix = cycle === 'monthly' ? '/mo' : cycle === 'quarterly' ? '/3mo' : cycle === 'halfYearly' ? '/6mo' : '/yr';
-    return `NPR. ${price.toLocaleString()}${suffix}`;
+  const formatPrice = (amount, cycle) => {
+    const suffix = { monthly: '/mo', quarterly: '/3mo', halfYearly: '/6mo', yearly: '/yr' };
+    return `NPR. ${amount.toLocaleString()}${suffix[cycle] || '/yr'}`;
   };
+
+  const getYearlyPrice = (pkg) => pkg.prices?.yearly || pkg.price || 0;
+  const getMonthlyPrice = (pkg) => pkg.prices?.monthly || 0;
+  const getQuarterlyPrice = (pkg) => pkg.prices?.quarterly || 0;
+  const getHalfYearlyPrice = (pkg) => pkg.prices?.halfYearly || 0;
 
   if (packages.length === 0) return null;
 
@@ -69,7 +72,8 @@ export default function PackagesSection() {
                   <tr className="border-b border-gray-200 dark:border-gray-600">
                     <th className="text-left py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Plan</th>
                     <th className="text-left py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Speed</th>
-                    <th className="text-right py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Price / Year</th>
+                    <th className="text-right py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Monthly</th>
+                    <th className="text-right py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Yearly</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -77,9 +81,10 @@ export default function PackagesSection() {
                     <tr key={pkg._id} className={`border-b border-gray-100 dark:border-gray-700 ${i === internetPkgs.length - 1 ? 'border-b-0' : ''}`}>
                       <td className="py-3 text-sm font-semibold text-gray-900 dark:text-white">{pkg.name}</td>
                       <td className="py-3 text-sm text-gray-600 dark:text-gray-400">{pkg.speed} Mbps</td>
-<td className="py-3 text-sm font-bold text-gray-900 dark:text-white text-right">{getPriceDisplay(pkg)}</td>
-                     </tr>
-                   ))}
+                      <td className="py-3 text-sm font-bold text-gray-900 dark:text-white text-right">{formatPrice(getMonthlyPrice(pkg), 'monthly')}</td>
+                      <td className="py-3 text-sm font-bold text-gray-900 dark:text-white text-right">{formatPrice(getYearlyPrice(pkg), 'yearly')}</td>
+                    </tr>
+                  ))}
                  </tbody>
                </table>
                <div className="mt-4 text-center">
@@ -100,21 +105,23 @@ export default function PackagesSection() {
              </div>
              <div className="p-4 sm:p-6 overflow-x-auto">
                <table className="w-full min-w-[300px]">
-                 <thead>
-                   <tr className="border-b border-gray-200 dark:border-gray-600">
-                     <th className="text-left py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Plan</th>
-                     <th className="text-left py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Speed + TV</th>
-                     <th className="text-right py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Price</th>
-                   </tr>
-                 </thead>
-                 <tbody>
-                   {comboPkgs.map((pkg, i) => (
-                     <tr key={pkg._id} className={`border-b border-gray-100 dark:border-gray-700 ${i === comboPkgs.length - 1 ? 'border-b-0' : ''}`}>
-                       <td className="py-3 text-sm font-semibold text-gray-900 dark:text-white">{pkg.name}</td>
-                       <td className="py-3 text-sm text-gray-600 dark:text-gray-400">{pkg.speed} Mbps + IP TV</td>
-                       <td className="py-3 text-sm font-bold text-gray-900 dark:text-white text-right">{getPriceDisplay(pkg)}</td>
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-600">
+                      <th className="text-left py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Plan</th>
+                      <th className="text-left py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Speed + TV</th>
+                      <th className="text-right py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Monthly</th>
+                      <th className="text-right py-3 text-sm font-bold text-gray-700 dark:text-gray-300">Yearly</th>
                     </tr>
-                  ))}
+                  </thead>
+                  <tbody>
+                    {comboPkgs.map((pkg, i) => (
+                      <tr key={pkg._id} className={`border-b border-gray-100 dark:border-gray-700 ${i === comboPkgs.length - 1 ? 'border-b-0' : ''}`}>
+                        <td className="py-3 text-sm font-semibold text-gray-900 dark:text-white">{pkg.name}</td>
+                        <td className="py-3 text-sm text-gray-600 dark:text-gray-400">{pkg.speed} Mbps + IP TV</td>
+                        <td className="py-3 text-sm font-bold text-gray-900 dark:text-white text-right">{formatPrice(getMonthlyPrice(pkg), 'monthly')}</td>
+                        <td className="py-3 text-sm font-bold text-gray-900 dark:text-white text-right">{formatPrice(getYearlyPrice(pkg), 'yearly')}</td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
               <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 text-center">
@@ -169,8 +176,8 @@ export default function PackagesSection() {
                           <td className="py-3 text-sm font-semibold text-gray-900 dark:text-white">{pkg.speed} Mbps</td>
                         </tr>
                         <tr className="border-b border-gray-100 dark:border-gray-700">
-<td className="py-3 text-sm text-gray-600 dark:text-gray-400">Price ({pkg.billingCycle || 'yearly'})</td>
-                           <td className="py-3 text-sm font-bold text-gray-900 dark:text-white">{getPriceDisplay(pkg)}</td>
+                          <td className="py-3 text-sm text-gray-600 dark:text-gray-400">Price ({pkg.billingCycle || 'yearly'})</td>
+                           <td className="py-3 text-sm font-bold text-gray-900 dark:text-white">{formatPrice(getYearlyPrice(pkg), 'yearly')}</td>
                         </tr>
                         <tr className="border-b border-gray-100 dark:border-gray-700">
                           <td className="py-3 text-sm text-gray-600 dark:text-gray-400">Installation</td>

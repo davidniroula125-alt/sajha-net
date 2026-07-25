@@ -5,6 +5,7 @@ import API from '../services/api';
 const emptyForm = {
   name: '', slug: '', speed: '', type: 'internet',
   billingCycle: 'yearly', price: '',
+  prices: { monthly: 0, quarterly: 0, halfYearly: 0, yearly: 0 },
   features: '', idealFor: '', highlights: '',
   includes: { router: false, mesh: false, phone: false, tv: false, ott: '', unlimitedData: true, dropWire: false },
   isPopular: false, isRecommended: false, sortOrder: 0, description: '', shortDescription: '',
@@ -32,7 +33,8 @@ export default function Packages() {
     if (pkg) {
 setForm({
          name: pkg.name || '', slug: pkg.slug || '', speed: pkg.speed || '', type: pkg.type || 'internet',
-         billingCycle: pkg.billingCycle || 'yearly', price: typeof pkg.price === 'number' ? pkg.price : (pkg.price?.yearly || pkg.price?.monthly || 0),
+         billingCycle: pkg.billingCycle || 'yearly', price: pkg.price || pkg.prices?.yearly || 0,
+         prices: { monthly: pkg.prices?.monthly || 0, quarterly: pkg.prices?.quarterly || 0, halfYearly: pkg.prices?.halfYearly || 0, yearly: pkg.prices?.yearly || pkg.price || 0 },
          installationCharge: pkg.installationCharge || '', image: pkg.image || '', badge: pkg.badge || '',
          features: pkg.features?.join(', ') || '', idealFor: pkg.idealFor?.join(', ') || '', highlights: pkg.highlights?.join(', ') || '',
          includes: { router: pkg.includes?.router || false, mesh: pkg.includes?.mesh || false, phone: pkg.includes?.phone || false, tv: pkg.includes?.tv || false, ott: pkg.includes?.ott?.join(', ') || '', unlimitedData: pkg.includes?.unlimitedData !== false, dropWire: pkg.includes?.dropWire || false },
@@ -53,6 +55,12 @@ setForm({
 const data = {
          name: form.name, slug: form.slug, speed: Number(form.speed), type: form.type,
          billingCycle: form.billingCycle, price: Number(form.price) || 0,
+         prices: {
+           yearly: Number(form.prices?.yearly) || Number(form.price) || 0,
+           halfYearly: Number(form.prices?.halfYearly) || 0,
+           quarterly: Number(form.prices?.quarterly) || 0,
+           monthly: Number(form.prices?.monthly) || 0
+         },
          installationCharge: Number(form.installationCharge) || 0,
          image: form.image || '',
          badge: form.badge || '',
@@ -106,7 +114,7 @@ const data = {
                 <td className="px-5 py-4"><div className="flex items-center space-x-3"><div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center"><FiWifi className="w-4 h-4 text-blue-500" /></div><div><p className="font-medium text-gray-900 text-sm">{pkg.name}</p><p className="text-xs text-gray-400 line-clamp-1 max-w-[200px]">{pkg.shortDescription}</p></div></div></td>
                 <td className="px-5 py-4 text-sm font-semibold text-gray-900">{pkg.speed} Mbps</td>
 <td className="px-5 py-4"><span className={`px-2 py-1 rounded-full text-xs font-medium ${typeColors[pkg.type] || 'bg-gray-100 text-gray-700'}`}>{pkg.type}</span></td>
-                  <td className="px-5 py-4 text-sm font-semibold text-gray-900">Rs. {(pkg.price || 0).toLocaleString()}/{(pkg.billingCycle || 'yearly')}</td>
+                  <td className="px-5 py-4 text-sm font-semibold text-gray-900">Rs. {(pkg.prices?.yearly || pkg.price || 0).toLocaleString()}/yr</td>
                   <td className="px-5 py-4">{pkg.badge && <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">{pkg.badge}</span>}</td>
                   <td className="px-5 py-4 text-xs text-gray-500">{pkg.features?.length || 0} features</td>
                 <td className="px-5 py-4">
@@ -155,7 +163,15 @@ const data = {
                 <h3 className="text-sm font-bold text-gray-900 mb-3">Pricing</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div><label className="block text-xs text-gray-500 mb-1">Billing Cycle</label><select value={form.billingCycle} onChange={e => setForm({...form, billingCycle: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="halfYearly">Half Yearly</option><option value="yearly">Yearly</option></select></div>
-                  <div><label className="block text-xs text-gray-500 mb-1">Price (Rs.)</label><input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm" required /></div>
+                  <div><label className="block text-xs text-gray-500 mb-1">Main Price (Rs.)</label><input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm" required /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 mt-3">
+                  <div><label className="block text-xs text-gray-500 mb-1">Monthly Price (Rs.)</label><input type="number" value={form.prices?.monthly || ''} onChange={e => setForm({...form, prices: {...form.prices, monthly: e.target.value}})} className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm" /></div>
+                  <div><label className="block text-xs text-gray-500 mb-1">Quarterly Price (Rs.)</label><input type="number" value={form.prices?.quarterly || ''} onChange={e => setForm({...form, prices: {...form.prices, quarterly: e.target.value}})} className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm" /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 mt-3">
+                  <div><label className="block text-xs text-gray-500 mb-1">Half-Yearly Price (Rs.)</label><input type="number" value={form.prices?.halfYearly || ''} onChange={e => setForm({...form, prices: {...form.prices, halfYearly: e.target.value}})} className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm" /></div>
+                  <div><label className="block text-xs text-gray-500 mb-1">Yearly Price (Rs.)</label><input type="number" value={form.prices?.yearly || ''} onChange={e => setForm({...form, prices: {...form.prices, yearly: e.target.value}})} className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm" /></div>
                 </div>
                 <div className="mt-3"><label className="block text-xs text-gray-500 mb-1">Installation Charge (Rs.)</label><input type="number" value={form.installationCharge} onChange={e => setForm({...form, installationCharge: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" /></div>
               </div>

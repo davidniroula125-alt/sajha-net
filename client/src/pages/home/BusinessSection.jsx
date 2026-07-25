@@ -6,12 +6,11 @@ import { Section, SectionTitle } from '../../components/common/UIComponents';
 import { packageAPI } from '../../services/api';
 
 export default function BusinessSection() {
-  const getPriceDisplay = (pkg) => {
-    const price = typeof pkg.price === 'number' ? pkg.price : (pkg.price?.yearly || pkg.price?.monthly || 0);
-    const cycle = pkg.billingCycle || 'yearly';
-    const suffix = cycle === 'monthly' ? '/mo' : cycle === 'quarterly' ? '/3mo' : cycle === 'halfYearly' ? '/6mo' : '/yr';
-    return `Rs. ${price.toLocaleString()}${suffix}`;
+  const formatPrice = (amount, cycle) => {
+    const suffix = { monthly: '/mo', quarterly: '/3mo', halfYearly: '/6mo', yearly: '/yr' };
+    return `Rs. ${amount.toLocaleString()}${suffix[cycle] || '/yr'}`;
   };
+  const getYearlyPrice = (pkg) => pkg.prices?.yearly || pkg.price || 0;
 
   const [plans, setPlans] = useState([]);
 
@@ -67,15 +66,15 @@ export default function BusinessSection() {
             >
               <p className="text-xs text-primary-500 font-medium uppercase">{plan.name}</p>
               <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">{plan.speed} Mbps</p>
-              <p className="text-sm text-gray-500 mt-1">{getPriceDisplay(plan)}</p>
+              <p className="text-sm text-gray-500 mt-1">{formatPrice(getYearlyPrice(plan), 'yearly')}</p>
             </motion.div>
           )) : (
             <>
 {[
-              { speed: '100 Mbps', price: 5000, billingCycle: 'yearly', label: 'Starter' },
-              { speed: '300 Mbps', price: 10000, billingCycle: 'yearly', label: 'Professional' },
-              { speed: '600 Mbps', price: 15000, billingCycle: 'yearly', label: 'Enterprise' },
-              { speed: '1 Gbps', price: 30000, billingCycle: 'yearly', label: 'Dedicated' },
+              { speed: '100 Mbps', prices: { yearly: 7500 }, label: 'Starter' },
+              { speed: '300 Mbps', prices: { yearly: 15000 }, label: 'Professional' },
+              { speed: '600 Mbps', prices: { yearly: 25000 }, label: 'Enterprise' },
+              { speed: '1 Gbps', prices: { yearly: 45000 }, label: 'Dedicated' },
             ].map((plan, i) => (
               <motion.div
                 key={i}
@@ -87,7 +86,7 @@ export default function BusinessSection() {
               >
                 <p className="text-xs text-primary-500 font-medium uppercase">{plan.label}</p>
                 <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">{plan.speed}</p>
-                <p className="text-sm text-gray-500 mt-1">{getPriceDisplay(plan)}</p>
+                <p className="text-sm text-gray-500 mt-1">{formatPrice(plan.prices.yearly, 'yearly')}</p>
               </motion.div>
             ))}
             </>

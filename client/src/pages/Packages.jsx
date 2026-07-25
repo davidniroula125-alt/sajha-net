@@ -4,11 +4,19 @@ import { FiCheck, FiWifi, FiStar, FiFilter } from 'react-icons/fi';
 import { packageAPI } from '../services/api';
 
 export default function Packages() {
-  const getPriceDisplay = (pkg) => {
-    const price = typeof pkg.price === 'number' ? pkg.price : (pkg.price?.yearly || pkg.price?.monthly || 0);
-    const cycle = pkg.billingCycle || 'yearly';
-    const suffix = cycle === 'monthly' ? '/mo' : cycle === 'quarterly' ? '/3mo' : cycle === 'halfYearly' ? '/6mo' : '/yr';
-    return `Rs. ${price.toLocaleString()}${suffix}`;
+  const getPrices = (pkg) => {
+    const p = pkg.prices || {};
+    return {
+      monthly: p.monthly || 0,
+      quarterly: p.quarterly || 0,
+      halfYearly: p.halfYearly || 0,
+      yearly: p.yearly || pkg.price || 0
+    };
+  };
+
+  const formatPrice = (amount, cycle) => {
+    const suffix = { monthly: '/mo', quarterly: '/3mo', halfYearly: '/6mo', yearly: '/yr' };
+    return `Rs. ${amount.toLocaleString()}${suffix[cycle] || '/yr'}`;
   };
 
   const [packages, setPackages] = useState([]);
@@ -88,7 +96,16 @@ export default function Packages() {
               <FiWifi className="w-8 h-8 text-primary-500 mb-4" />
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{pkg.name}</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 uppercase mb-4">{pkg.type}</p>
-              <p className="text-3xl font-bold gradient-text mb-1">{getPriceDisplay(pkg)}</p>
+              {(() => { const prices = getPrices(pkg); return (
+                <div className="mb-4">
+                  <p className="text-3xl font-bold gradient-text mb-2">{formatPrice(prices.yearly, 'yearly')}</p>
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    <span className="text-gray-500 dark:text-gray-400">{formatPrice(prices.monthly, 'monthly')}</span>
+                    <span className="text-gray-500 dark:text-gray-400">{formatPrice(prices.quarterly, 'quarterly')}</span>
+                    <span className="text-gray-500 dark:text-gray-400">{formatPrice(prices.halfYearly, 'halfYearly')}</span>
+                  </div>
+                </div>
+              ); })()}
               <ul className="space-y-2 mb-6">
                 {pkg.features?.map((f, j) => (
                   <li key={j} className="flex items-center text-sm text-gray-600 dark:text-gray-400">
