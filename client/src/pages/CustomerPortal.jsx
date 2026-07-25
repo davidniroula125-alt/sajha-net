@@ -83,33 +83,43 @@ export default function CustomerPortal() {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Dashboard</h2>
 
-                <div className="grid md:grid-cols-3 gap-6 mb-6">
-                  <div className="card p-6">
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Current Plan</p>
-                    <p className="text-2xl font-bold text-primary-500">{pkg ? pkg.name : 'No Plan'}</p>
-                    {pkg && <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">{pkg.speed} Mbps</p>}
+                <div className="grid md:grid-cols-4 gap-4 mb-6">
+                  <div className="card p-5">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Current Plan</p>
+                    <p className="text-xl font-bold text-primary-500">{pkg ? pkg.name : 'No Plan'}</p>
+                    {pkg && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{pkg.speed} Mbps</p>}
                   </div>
-                  <div className="card p-6">
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Payment Status</p>
+                  <div className="card p-5">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Payment Status</p>
                     {loading ? (
-                      <p className="text-lg text-gray-400">Loading...</p>
+                      <p className="text-sm text-gray-400">Loading...</p>
                     ) : sub.paymentStatus === 'paid' ? (
-                      <p className="text-2xl font-bold text-green-500 flex items-center gap-2"><FiCheckCircle /> Paid</p>
+                      <p className="text-xl font-bold text-green-500 flex items-center gap-1"><FiCheckCircle /> Paid</p>
                     ) : (
-                      <p className="text-2xl font-bold text-red-500 flex items-center gap-2"><FiAlertTriangle /> Unpaid</p>
+                      <p className="text-xl font-bold text-red-500 flex items-center gap-1"><FiAlertTriangle /> Unpaid</p>
                     )}
+                    {sub.paymentMethod && <p className="text-xs text-gray-400 mt-1 capitalize">via {sub.paymentMethod}</p>}
                   </div>
-                  <div className="card p-6">
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Expiry Date</p>
+                  <div className="card p-5">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Duration</p>
                     {loading ? (
-                      <p className="text-lg text-gray-400">Loading...</p>
-                    ) : sub.isExpired ? (
-                      <p className="text-2xl font-bold text-red-500 flex items-center gap-2"><FiAlertTriangle /> Expired</p>
+                      <p className="text-sm text-gray-400">Loading...</p>
                     ) : (
-                      <p className="text-2xl font-bold text-success-500 flex items-center gap-2"><FiClock /> {expiryStr}</p>
+                      <p className="text-xl font-bold text-blue-500 capitalize">{sub.duration || 'N/A'}</p>
+                    )}
+                    {sub.paidAt && <p className="text-xs text-gray-400 mt-1">Paid {new Date(sub.paidAt).toLocaleDateString()}</p>}
+                  </div>
+                  <div className="card p-5">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Expiry Date</p>
+                    {loading ? (
+                      <p className="text-sm text-gray-400">Loading...</p>
+                    ) : sub.isExpired ? (
+                      <p className="text-xl font-bold text-red-500 flex items-center gap-1"><FiAlertTriangle /> Expired</p>
+                    ) : (
+                      <p className="text-xl font-bold text-success-500 flex items-center gap-1"><FiClock /> {expiryStr}</p>
                     )}
                     {!loading && !sub.isExpired && sub.daysRemaining > 0 && (
-                      <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">{sub.daysRemaining} days remaining</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{sub.daysRemaining} days left</p>
                     )}
                   </div>
                 </div>
