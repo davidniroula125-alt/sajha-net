@@ -49,16 +49,7 @@ export default function Applications() {
     } catch {}
   };
 
-  const approveApplication = async (app) => {
-    if (app.paymentStatus !== 'paid') {
-      alert('Please mark payment as paid before approving.');
-      return;
-    }
-    try {
-      await API.put(`/applications/${app._id}`, { status: 'approved' });
-      fetchApplications();
-    } catch {}
-  };
+
 
   const saveEdit = async () => {
     if (!showEditModal) return;
@@ -80,6 +71,18 @@ export default function Applications() {
       expiryDate: app.expiryDate ? new Date(app.expiryDate).toISOString().split('T')[0] : '',
     });
     setShowEditModal(app);
+  };
+
+  const handleDurationChange = (dur) => {
+    const months = { monthly: 1, quarterly: 3, halfYearly: 6, yearly: 12 };
+    const m = months[dur] || 12;
+    const expiry = new Date();
+    expiry.setMonth(expiry.getMonth() + m);
+    setEditForm({
+      ...editForm,
+      paymentDuration: dur,
+      expiryDate: expiry.toISOString().split('T')[0],
+    });
   };
 
   const statusColors = {
@@ -147,18 +150,10 @@ export default function Applications() {
                             <FiDollarSign className="w-3 h-3" /> Paid
                           </button>
                         )}
-                        <button onClick={() => approveApplication(app)} className={`p-1.5 rounded-lg ${app.paymentStatus === 'paid' ? 'bg-green-50 hover:bg-green-100' : 'bg-gray-50 opacity-50 cursor-not-allowed'}`} title={app.paymentStatus === 'paid' ? 'Approve' : 'Mark payment first'}>
-                          <FiCheck className="w-4 h-4 text-green-500" />
-                        </button>
                         <button onClick={() => updateApplication(app._id, { status: 'rejected' })} className="p-1.5 bg-red-50 rounded-lg hover:bg-red-100">
                           <FiX className="w-4 h-4 text-red-500" />
                         </button>
                       </>
-                    )}
-                    {app.status === 'approved' && (
-                      <button onClick={() => updateApplication(app._id, { status: 'installed' })} className="p-1.5 bg-blue-50 rounded-lg hover:bg-blue-100">
-                        <FiCheck className="w-4 h-4 text-blue-500" />
-                      </button>
                     )}
                     <button onClick={() => openEditModal(app)} className="p-1.5 bg-gray-50 rounded-lg hover:bg-gray-100" title="Edit payment & expiry">
                       <FiEdit2 className="w-4 h-4 text-gray-500" />
@@ -215,7 +210,7 @@ export default function Applications() {
             </select>
 
             <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
-            <select value={editForm.paymentDuration} onChange={e => setEditForm({ ...editForm, paymentDuration: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select value={editForm.paymentDuration} onChange={e => handleDurationChange(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="monthly">Monthly</option>
               <option value="quarterly">Quarterly</option>
               <option value="halfYearly">Half Yearly</option>

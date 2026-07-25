@@ -35,7 +35,7 @@ exports.updateApplication = async (req, res) => {
     const application = await Application.findById(req.params.id).populate('package');
     if (!application) return res.status(404).json({ success: false, message: 'Application not found' });
 
-    const { status, paymentStatus, paymentMethod, paymentAmount, paymentDuration, adminNotes } = req.body;
+    const { status, paymentStatus, paymentMethod, paymentAmount, paymentDuration, adminNotes, expiryDate } = req.body;
 
     if (paymentStatus) application.paymentStatus = paymentStatus;
     if (paymentMethod !== undefined) application.paymentMethod = paymentMethod;
@@ -43,7 +43,7 @@ exports.updateApplication = async (req, res) => {
     if (paymentDuration !== undefined) application.paymentDuration = paymentDuration;
     if (adminNotes !== undefined) application.adminNotes = adminNotes;
 
-    if (paymentStatus === 'paid' && paymentDuration) {
+    if (paymentDuration && paymentStatus !== 'paid') {
       const months = { monthly: 1, quarterly: 3, halfYearly: 6, yearly: 12 };
       const m = months[paymentDuration] || 12;
       const expiry = new Date();
@@ -51,7 +51,21 @@ exports.updateApplication = async (req, res) => {
       application.expiryDate = expiry;
     }
 
-    if (status === 'approved' && application.paymentStatus === 'paid') {
+    if (expiryDate !== undefined) {
+      application.expiryDate = expiryDate ? new Date(expiryDate) : null;
+    }
+
+    const shouldTransfer = paymentStatus === 'paid' && !application.user && application.status !== 'installed' && application.status !== 'rejected';
+
+    if (shouldTransfer) {
+      if (paymentDuration) {
+        const months = { monthly: 1, quarterly: 3, halfYearly: 6, yearly: 12 };
+        const m = months[paymentDuration] || 12;
+        const expiry = new Date();
+        expiry.setMonth(expiry.getMonth() + m);
+        application.expiryDate = expiry;
+      }
+
       let user = await User.findOne({ phone: application.phone });
       if (!user) {
         const tempPassword = await bcrypt.hash('sajha123', 10);
@@ -62,12 +76,12 @@ exports.updateApplication = async (req, res) => {
           password: tempPassword,
           role: 'customer',
           address: {
-            province: application.address.province,
-            district: application.address.district,
-            municipality: application.address.municipality,
-            ward: application.address.ward,
-            street: application.address.street || '',
-            landmark: application.address.landmark || '',
+            province: application.address?.province || '',
+            district: application.address?.district || '',
+            municipality: application.address?.municipality || '',
+            ward: application.address?.ward || '',
+            street: application.address?.street || '',
+            landmark: application.address?.landmark || '',
           },
         });
       }
