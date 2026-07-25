@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiWifi, FiDownload, FiClock, FiActivity, FiRefreshCw, FiCheck } from 'react-icons/fi';
+import { FiWifi, FiDownload, FiClock, FiActivity, FiRefreshCw, FiCheck, FiFileText, FiArrowDown } from 'react-icons/fi';
 import { Section } from '../components/common/UIComponents';
 
 const TEST_SIZES = [5, 10, 25];
@@ -89,26 +89,30 @@ export default function SpeedTest() {
   const [status, setStatus] = useState('idle');
   const [speed, setSpeed] = useState(0);
   const [ping, setPing] = useState(0);
+  const [pingResults, setPingResults] = useState([]);
   const [downloadSize, setDownloadSize] = useState(0);
   const [downloadTime, setDownloadTime] = useState(0);
   const [progress, setProgress] = useState(0);
   const [testSize, setTestSize] = useState(10);
+  const [activeTab, setActiveTab] = useState('download');
   const abortRef = useRef(null);
   const gaugeMax = testSize <= 5 ? 100 : testSize <= 10 ? 200 : GAUGE_MAX;
 
-  const runPing = useCallback(async () => {
+  const runPing = useCallback(async (onPing) => {
     const results = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 10; i++) {
       const start = performance.now();
       try {
         await fetch('/api/health', { cache: 'no-store' });
-        results.push(performance.now() - start);
+        const ms = Math.round(performance.now() - start);
+        results.push(ms);
+        if (onPing) onPing(ms, i + 1);
       } catch {
         results.push(0);
       }
     }
     const valid = results.filter((r) => r > 0);
-    return valid.length > 0 ? Math.round(valid.reduce((a, b) => a + b, 0) / valid.length) : 0;
+    return { avg: valid.length > 0 ? Math.round(valid.reduce((a, b) => a + b, 0) / valid.length) : 0, results };
   }, []);
 
   const runDownload = useCallback(async (signal) => {
@@ -134,6 +138,7 @@ export default function SpeedTest() {
     setStatus('ping');
     setSpeed(0);
     setPing(0);
+    setPingResults([]);
     setProgress(0);
     setDownloadSize(0);
     setDownloadTime(0);
@@ -142,8 +147,12 @@ export default function SpeedTest() {
     abortRef.current = controller;
 
     try {
-      const pingMs = await runPing();
-      setPing(pingMs);
+      const { avg, results } = await runPing((ms, n) => {
+        setPingResults(prev => [...prev, ms]);
+        setPing(ms);
+      });
+      setPing(avg);
+      setPingResults(results);
 
       setStatus('download');
       const result = await runDownload(controller.signal);
@@ -164,6 +173,7 @@ export default function SpeedTest() {
     setStatus('idle');
     setSpeed(0);
     setPing(0);
+    setPingResults([]);
     setProgress(0);
     setDownloadSize(0);
     setDownloadTime(0);
@@ -173,6 +183,43 @@ export default function SpeedTest() {
     resetTest();
     setTimeout(() => startTest(), 100);
   }, [resetTest, startTest]);
+
+  const downloadResults = useCallback(() => {
+    const minPing = pingResults.length > 0 ? Math.min(...pingResults.filter(r => r > 0)) : 0;
+    const maxPing = pingResults.length > 0 ? Math.max(...pingResults.filter(r => r > 0)) : 0;
+    const text = `
+===================================
+     SAJHA NET SPEED TEST RESULTS
+===================================
+
+Date: ${new Date().toLocaleString()}
+Test Size: ${testSize} MB
+
+--- DOWNLOAD ---
+Speed: ${speed} Mbps
+Data Downloaded: ${formatBytes(downloadSize)}
+Time: ${downloadTime}s
+
+--- LATENCY (PING) ---
+Average: ${ping} ms
+Minimum: ${minPing} ms
+Maximum: ${maxPing} ms
+
+Ping Results (10 tests):
+${pingResults.map((r, i) => `  #${i + 1}: ${r} ms`).join('\n')}
+
+===================================
+  www.sajhanet.com | ${speed >= 100 ? 'Excellent' : speed >= 50 ? 'Good' : 'Needs Improvement'}
+===================================
+`.trim();
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sajha-net-speed-test-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [speed, ping, pingResults, downloadSize, downloadTime, testSize, formatBytes]);
 
   const formatBytes = (bytes) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -246,32 +293,80 @@ export default function SpeedTest() {
             {status === 'done' && (
               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
                 <Gauge speed={speed} maxSpeed={gaugeMax} status={status} />
-                <div className="mt-4 mb-8">
+                <div className="mt-4 mb-6">
                   <p className="text-6xl font-bold gradient-text mb-2">{speed} <span className="text-lg text-gray-500 dark:text-gray-400">Mbps</span></p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Download Speed</p>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4 mb-8">
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-                    <FiClock className="w-5 h-5 text-primary-500 mx-auto mb-2" />
-                    <p className="text-xl font-bold text-gray-900 dark:text-white">{ping}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Ping (ms)</p>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-                    <FiDownload className="w-5 h-5 text-primary-500 mx-auto mb-2" />
-                    <p className="text-xl font-bold text-gray-900 dark:text-white">{formatBytes(downloadSize)}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Downloaded</p>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-                    <FiActivity className="w-5 h-5 text-primary-500 mx-auto mb-2" />
-                    <p className="text-xl font-bold text-gray-900 dark:text-white">{downloadTime}s</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Time</p>
+                <div className="flex justify-center mb-6">
+                  <div className="inline-flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+                    <button onClick={() => setActiveTab('download')} className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'download' ? 'gradient-bg text-white' : 'text-gray-600 dark:text-gray-400'}`}>
+                      <FiDownload className="w-4 h-4 inline mr-1" /> Download
+                    </button>
+                    <button onClick={() => setActiveTab('latency')} className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'latency' ? 'gradient-bg text-white' : 'text-gray-600 dark:text-gray-400'}`}>
+                      <FiClock className="w-4 h-4 inline mr-1" /> Latency
+                    </button>
                   </div>
                 </div>
+
+                {activeTab === 'download' && (
+                  <div className="grid grid-cols-3 gap-4 mb-8">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                      <FiArrowDown className="w-5 h-5 text-primary-500 mx-auto mb-2" />
+                      <p className="text-xl font-bold text-gray-900 dark:text-white">{speed}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Mbps</p>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                      <FiDownload className="w-5 h-5 text-primary-500 mx-auto mb-2" />
+                      <p className="text-xl font-bold text-gray-900 dark:text-white">{formatBytes(downloadSize)}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Downloaded</p>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                      <FiActivity className="w-5 h-5 text-primary-500 mx-auto mb-2" />
+                      <p className="text-xl font-bold text-gray-900 dark:text-white">{downloadTime}s</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Time</p>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'latency' && (
+                  <div className="mb-8">
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                        <FiClock className="w-5 h-5 text-primary-500 mx-auto mb-2" />
+                        <p className="text-xl font-bold text-gray-900 dark:text-white">{ping}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Avg (ms)</p>
+                      </div>
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                        <FiClock className="w-5 h-5 text-green-500 mx-auto mb-2" />
+                        <p className="text-xl font-bold text-gray-900 dark:text-white">{pingResults.length > 0 ? Math.min(...pingResults.filter(r => r > 0)) : 0}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Min (ms)</p>
+                      </div>
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                        <FiClock className="w-5 h-5 text-red-500 mx-auto mb-2" />
+                        <p className="text-xl font-bold text-gray-900 dark:text-white">{pingResults.length > 0 ? Math.max(...pingResults.filter(r => r > 0)) : 0}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Max (ms)</p>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                      <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">Ping History (10 tests)</p>
+                      <div className="flex flex-wrap gap-2">
+                        {pingResults.map((r, i) => (
+                          <span key={i} className={`px-2 py-1 rounded text-xs font-medium ${r < 30 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : r < 80 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'}`}>
+                            {r} ms
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex justify-center gap-4">
                   <button onClick={handleTestAgain} className="flex items-center gap-2 px-8 py-3 gradient-bg text-white rounded-xl font-semibold hover:shadow-lg transition-all">
                     <FiRefreshCw className="w-4 h-4" /> Test Again
+                  </button>
+                  <button onClick={downloadResults} className="flex items-center gap-2 px-8 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
+                    <FiFileText className="w-4 h-4" /> Download Results
                   </button>
                 </div>
               </motion.div>
