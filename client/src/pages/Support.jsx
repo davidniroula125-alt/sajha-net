@@ -371,7 +371,7 @@ export default function Support() {
                   <h3 className="font-bold text-gray-900 dark:text-white">{app.name}</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{app.desc}</p>
                   <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">{app.platform}</p>
-                  <Button variant="secondary" size="sm" to={app.link || '#'}>{app.link ? 'Open Tool' : 'Download'}</Button>
+                  <Button variant="secondary" size="sm" to={app.link || '#'}>{app.link ? 'Click Here' : 'Download'}</Button>
                 </div>
               ))}
             </div>
