@@ -184,41 +184,161 @@ export default function SpeedTest() {
     setTimeout(() => startTest(), 100);
   }, [resetTest, startTest]);
 
+  const startDownloadTest = useCallback(async () => {
+    if (status === 'ping' || status === 'download') return;
+    resetTest();
+    setStatus('download');
+    setSpeed(0);
+    setProgress(0);
+    setDownloadSize(0);
+    setDownloadTime(0);
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      const result = await runDownload(controller.signal);
+      setSpeed(result.speed);
+      setDownloadSize(result.size);
+      setDownloadTime(result.time.toFixed(2));
+      setStatus('done');
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        setStatus('error');
+        setSpeed(0);
+      }
+    }
+  }, [status, resetTest, runDownload]);
+
+  const runPingTests = useCallback(async () => {
+    if (status === 'ping' || status === 'download') return;
+    resetTest();
+    setStatus('ping');
+    setPing(0);
+    setPingResults([]);
+
+    try {
+      const { avg, results } = await runPing((ms) => {
+        setPingResults(prev => [...prev, ms]);
+        setPing(ms);
+      });
+      setPing(avg);
+      setPingResults(results);
+      setStatus('idle');
+    } catch {
+      setStatus('error');
+    }
+  }, [status, resetTest, runPing]);
+
   const downloadResults = useCallback(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 600;
+    const ctx = canvas.getContext('2d');
+
+    const grad = ctx.createLinearGradient(0, 0, 800, 600);
+    grad.addColorStop(0, '#0f172a');
+    grad.addColorStop(1, '#1e293b');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 800, 600);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 28px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Sajha Net Speed Test Results', 400, 50);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '16px Arial';
+    ctx.fillText(new Date().toLocaleString(), 400, 80);
+
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(50, 100);
+    ctx.lineTo(750, 100);
+    ctx.stroke();
+
+    ctx.fillStyle = '#22d3ee';
+    ctx.font = 'bold 20px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('DOWNLOAD SPEED', 80, 145);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 60px Arial';
+    ctx.fillText(`${speed} Mbps`, 80, 210);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '16px Arial';
+    ctx.fillText(`Downloaded: ${formatBytes(downloadSize)}   |   Time: ${downloadTime}s   |   Test Size: ${testSize} MB`, 80, 245);
+
+    ctx.strokeStyle = '#334155';
+    ctx.beginPath();
+    ctx.moveTo(50, 270);
+    ctx.lineTo(750, 270);
+    ctx.stroke();
+
+    ctx.fillStyle = '#22d3ee';
+    ctx.font = 'bold 20px Arial';
+    ctx.fillText('LATENCY (PING)', 80, 310);
+
     const minPing = pingResults.length > 0 ? Math.min(...pingResults.filter(r => r > 0)) : 0;
     const maxPing = pingResults.length > 0 ? Math.max(...pingResults.filter(r => r > 0)) : 0;
-    const text = `
-===================================
-     SAJHA NET SPEED TEST RESULTS
-===================================
 
-Date: ${new Date().toLocaleString()}
-Test Size: ${testSize} MB
+    const pingBoxes = [
+      { label: 'Average', value: `${ping} ms`, color: '#ffffff' },
+      { label: 'Minimum', value: `${minPing} ms`, color: '#22c55e' },
+      { label: 'Maximum', value: `${maxPing} ms`, color: '#ef4444' }
+    ];
+    pingBoxes.forEach((box, i) => {
+      const x = 80 + i * 230;
+      ctx.fillStyle = '#1e293b';
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(x, 330, 200, 80, 8);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '13px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(box.label, x + 100, 355);
+      ctx.fillStyle = box.color;
+      ctx.font = 'bold 24px Arial';
+      ctx.fillText(box.value, x + 100, 390);
+    });
 
---- DOWNLOAD ---
-Speed: ${speed} Mbps
-Data Downloaded: ${formatBytes(downloadSize)}
-Time: ${downloadTime}s
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '13px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('Ping History:', 80, 445);
+    const barMax = Math.max(...pingResults.filter(r => r > 0), 1);
+    pingResults.forEach((r, i) => {
+      const x = 80 + i * 65;
+      const barH = Math.max((r / barMax) * 50, 4);
+      ctx.fillStyle = r < 30 ? '#22c55e' : r < 80 ? '#f59e0b' : '#ef4444';
+      ctx.beginPath();
+      ctx.roundRect(x, 460 + (50 - barH), 50, barH, 3);
+      ctx.fill();
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '11px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${r}ms`, x + 25, 460 + 65);
+    });
 
---- LATENCY (PING) ---
-Average: ${ping} ms
-Minimum: ${minPing} ms
-Maximum: ${maxPing} ms
+    const rating = speed >= 100 ? 'Excellent' : speed >= 50 ? 'Good' : speed >= 20 ? 'Fair' : 'Slow';
+    ctx.fillStyle = '#334155';
+    ctx.beginPath();
+    ctx.roundRect(50, 540, 700, 45, 8);
+    ctx.fill();
+    ctx.fillStyle = '#22d3ee';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`www.sajhanet.com  |  ${speed} Mbps  |  ${ping}ms ping  |  ${rating}`, 400, 568);
 
-Ping Results (10 tests):
-${pingResults.map((r, i) => `  #${i + 1}: ${r} ms`).join('\n')}
-
-===================================
-  www.sajhanet.com | ${speed >= 100 ? 'Excellent' : speed >= 50 ? 'Good' : 'Needs Improvement'}
-===================================
-`.trim();
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `sajha-net-speed-test-${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const link = document.createElement('a');
+    link.download = `sajha-net-speed-test-${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
   }, [speed, ping, pingResults, downloadSize, downloadTime, testSize, formatBytes]);
 
   const formatBytes = (bytes) => {
@@ -385,16 +505,16 @@ ${pingResults.map((r, i) => `  #${i + 1}: ${r} ms`).join('\n')}
           </div>
 
           <div className="mt-8 grid grid-cols-3 gap-4">
-            <div className="card p-4 text-center">
+            <button onClick={startDownloadTest} className="card p-4 text-center hover:scale-105 hover:border-primary-500 border border-transparent transition-all cursor-pointer">
               <FiDownload className="w-6 h-6 text-primary-500 mx-auto mb-2" />
               <h3 className="font-bold text-gray-900 dark:text-white text-sm">Download Test</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Measures how fast data is downloaded from our server</p>
-            </div>
-            <div className="card p-4 text-center">
+            </button>
+            <button onClick={runPingTests} className="card p-4 text-center hover:scale-105 hover:border-primary-500 border border-transparent transition-all cursor-pointer">
               <FiClock className="w-6 h-6 text-primary-500 mx-auto mb-2" />
               <h3 className="font-bold text-gray-900 dark:text-white text-sm">Latency (Ping)</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Measures the response time of your connection</p>
-            </div>
+            </button>
             <div className="card p-4 text-center">
               <FiCheck className="w-6 h-6 text-primary-500 mx-auto mb-2" />
               <h3 className="font-bold text-gray-900 dark:text-white text-sm">Works Everywhere</h3>
