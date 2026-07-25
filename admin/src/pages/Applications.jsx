@@ -9,7 +9,7 @@ export default function Applications() {
   const [showEditModal, setShowEditModal] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [paymentDuration, setPaymentDuration] = useState('yearly');
-  const [editForm, setEditForm] = useState({ paymentStatus: 'unpaid', paymentDuration: 'yearly', expiryDate: '' });
+  const [editForm, setEditForm] = useState({ paymentStatus: 'unpaid', paymentDuration: 'yearly', paymentMethod: 'cash', expiryDate: '' });
 
   useEffect(() => { fetchApplications(); }, [statusFilter]);
 
@@ -56,6 +56,7 @@ export default function Applications() {
     try {
       await API.put(`/applications/${showEditModal._id}`, {
         paymentStatus: editForm.paymentStatus,
+        paymentMethod: editForm.paymentMethod,
         paymentDuration: editForm.paymentDuration,
         expiryDate: editForm.expiryDate ? new Date(editForm.expiryDate).toISOString() : null,
       });
@@ -67,6 +68,7 @@ export default function Applications() {
   const openEditModal = (app) => {
     setEditForm({
       paymentStatus: app.paymentStatus || 'unpaid',
+      paymentMethod: app.paymentMethod || 'cash',
       paymentDuration: app.paymentDuration || 'yearly',
       expiryDate: app.expiryDate ? new Date(app.expiryDate).toISOString().split('T')[0] : '',
     });
@@ -207,6 +209,15 @@ export default function Applications() {
             <select value={editForm.paymentStatus} onChange={e => setEditForm({ ...editForm, paymentStatus: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="unpaid">Unpaid</option>
               <option value="paid">Paid</option>
+            </select>
+
+            <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
+            <select value={editForm.paymentMethod} onChange={e => setEditForm({ ...editForm, paymentMethod: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="cash">Cash</option>
+              <option value="esewa">eSewa</option>
+              <option value="khalti">Khalti</option>
+              <option value="bank">Bank Transfer</option>
+              <option value="online">Online</option>
             </select>
 
             <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>

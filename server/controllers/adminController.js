@@ -88,3 +88,21 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+exports.updateUserSubscription = async (req, res) => {
+  try {
+    const { paymentStatus, paymentMethod, paymentDuration, expiryDate } = req.body;
+    const app = await Application.findOne({ user: req.params.id }).sort({ createdAt: -1 });
+    if (!app) return res.status(404).json({ success: false, message: 'No application found for this customer' });
+
+    if (paymentStatus) app.paymentStatus = paymentStatus;
+    if (paymentMethod !== undefined) app.paymentMethod = paymentMethod;
+    if (paymentDuration) app.paymentDuration = paymentDuration;
+    if (expiryDate !== undefined) app.expiryDate = expiryDate ? new Date(expiryDate) : null;
+
+    await app.save();
+    res.json({ success: true, application: app });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
