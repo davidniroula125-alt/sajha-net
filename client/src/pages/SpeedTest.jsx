@@ -46,25 +46,9 @@ function Gauge({ speed, maxSpeed, status }) {
     <div className="relative inline-block">
       <svg width="240" height="160" viewBox="0 0 240 160">
         <path d={arcPath(135, 135 + 270)} fill="none" stroke="#1e293b" strokeWidth="12" strokeLinecap="round" />
-        <path
-          d={arcPath(135, 135 + pct * 270)}
-          fill="none"
-          stroke={getColor()}
-          strokeWidth="12"
-          strokeLinecap="round"
-          style={{ transition: 'all 0.3s ease-out' }}
-        />
-        <line
-          x1={cx}
-          y1={cy}
-          x2={needleX}
-          y2={needleY}
-          stroke={getColor()}
-          strokeWidth="3"
-          strokeLinecap="round"
-          style={{ transition: 'all 0.3s ease-out' }}
-        />
-        <circle cx={cx} cy={cy} r="6" fill={getColor()} style={{ transition: 'fill 0.3s' }} />
+        <path d={arcPath(135, 135 + pct * 270)} fill="none" stroke={getColor()} strokeWidth="12" strokeLinecap="round" style={{ transition: 'all 0.3s ease-out' }} />
+        <line x1={cx} y1={cy} x2={needleX} y2={needleY} stroke={getColor()} strokeWidth="3" strokeLinecap="round" style={{ transition: 'all 0.3s ease-out' }} />
+        <circle cx={cx} cy={cy} r="6" fill={getColor()} />
         {[0, 0.25, 0.5, 0.75, 1].map((p, i) => {
           const a = ((-135 + p * 270) * Math.PI) / 180;
           const tx = cx + (radius + 16) * Math.cos(a);
@@ -98,6 +82,12 @@ export default function SpeedTest() {
   const abortRef = useRef(null);
   const gaugeMax = testSize <= 5 ? 100 : testSize <= 10 ? 200 : GAUGE_MAX;
 
+  const formatBytes = useCallback((bytes) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }, []);
+
   const runPing = useCallback(async (onPing) => {
     const results = [];
     for (let i = 0; i < 10; i++) {
@@ -112,15 +102,16 @@ export default function SpeedTest() {
       }
     }
     const valid = results.filter((r) => r > 0);
-    return { avg: valid.length > 0 ? Math.round(valid.reduce((a, b) => a + b, 0) / valid.length) : 0, results };
+    const avg = valid.length > 0 ? Math.round(valid.reduce((a, b) => a + b, 0) / valid.length) : 0;
+    return { avg, results };
   }, []);
 
   const runDownload = useCallback(async (signal) => {
     const start = performance.now();
-    const res = await fetch(`/api/speed-test?size=${testSize}`, { cache: 'no-store', signal });
+    const res = await fetch('/api/speed-test?size=' + testSize, { cache: 'no-store', signal });
     const reader = res.body.getReader();
     let received = 0;
-    const contentLength = parseInt(res.headers.get('Content-Length') || testSize * 1024 * 1024);
+    const contentLength = parseInt(res.headers.get('Content-Length') || (testSize * 1024 * 1024));
 
     while (true) {
       const { done, value } = await reader.read();
@@ -148,7 +139,7 @@ export default function SpeedTest() {
 
     try {
       const { avg, results } = await runPing((ms) => {
-        setPingResults(prev => [...prev, ms]);
+        setPingResults((prev) => [...prev, ms]);
         setPing(ms);
       });
       setPing(avg);
@@ -219,7 +210,7 @@ export default function SpeedTest() {
 
     try {
       const { avg, results } = await runPing((ms) => {
-        setPingResults(prev => [...prev, ms]);
+        setPingResults((prev) => [...prev, ms]);
         setPing(ms);
       });
       setPing(avg);
@@ -230,60 +221,56 @@ export default function SpeedTest() {
     }
   }, [status, resetTest, runPing]);
 
-  const formatBytes = (bytes) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / 1048576).toFixed(1)} MB`;
-  };
-
   const downloadResults = useCallback(() => {
-    const validPings = pingResults.filter(function(r) { return r > 0; });
-    const minP = validPings.length > 0 ? Math.min.apply(null, validPings) : 0;
-    const maxP = validPings.length > 0 ? Math.max.apply(null, validPings) : 0;
+    const validPings = pingResults.filter((r) => r > 0);
+    const minP = validPings.length > 0 ? Math.min(...validPings) : 0;
+    const maxP = validPings.length > 0 ? Math.max(...validPings) : 0;
     const rating = speed >= 100 ? 'Excellent' : speed >= 50 ? 'Good' : speed >= 20 ? 'Fair' : 'Slow';
+    const now = new Date().toLocaleString();
 
-    let barsHtml = '';
+    let barsSvg = '';
     if (validPings.length > 0) {
-      const barMax = Math.max.apply(null, validPings);
-      validPings.forEach(function(r, i) {
+      const barMax = Math.max(...validPings);
+      validPings.forEach((r, i) => {
         const bh = Math.max((r / barMax) * 40, 4);
         const color = r < 30 ? '#22c55e' : r < 80 ? '#f59e0b' : '#ef4444';
         const x = 50 + i * 52;
-        barsHtml += '<rect x="' + x + '" y="' + (360 + (40 - bh)) + '" width="40" height="' + bh + '" fill="' + color + '"/>';
-        barsHtml += '<text x="' + (x + 20) + '" y="420" text-anchor="middle" fill="#e2e8f0" font-size="9">' + r + 'ms</text>';
+        barsSvg += '<rect x="' + x + '" y="' + (360 + (40 - bh)) + '" width="40" height="' + bh + '" fill="' + color + '"/>';
+        barsSvg += '<text x="' + (x + 20) + '" y="420" text-anchor="middle" fill="#e2e8f0" font-size="9">' + r + 'ms</text>';
       });
     }
 
-    var svgContent = '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="490">' +
-      '<rect width="600" height="490" fill="#0f172a"/>' +
-      '<text x="300" y="30" text-anchor="middle" fill="#22d3ee" font-family="Arial,sans-serif" font-weight="bold" font-size="13">SAJHA NET</text>' +
-      '<text x="300" y="56" text-anchor="middle" fill="#ffffff" font-family="Arial,sans-serif" font-weight="bold" font-size="24">Speed Test Results</text>' +
-      '<text x="300" y="76" text-anchor="middle" fill="#94a3b8" font-family="Arial,sans-serif" font-size="12">' + new Date().toLocaleString() + '</text>' +
-      '<line x1="30" y1="90" x2="570" y2="90" stroke="#334155" stroke-width="1"/>' +
-      '<text x="50" y="120" fill="#22d3ee" font-family="Arial,sans-serif" font-weight="bold" font-size="15">DOWNLOAD SPEED</text>' +
-      '<text x="50" y="175" fill="#ffffff" font-family="Arial,sans-serif" font-weight="bold" font-size="48">' + speed + '</text>' +
-      '<text x="130" y="175" fill="#94a3b8" font-family="Arial,sans-serif" font-size="18">Mbps</text>' +
-      '<text x="50" y="200" fill="#94a3b8" font-family="Arial,sans-serif" font-size="12">Downloaded: ' + formatBytes(downloadSize) + '  |  Time: ' + downloadTime + 's  |  Size: ' + testSize + ' MB</text>' +
-      '<line x1="30" y1="218" x2="570" y2="218" stroke="#334155" stroke-width="1"/>' +
-      '<text x="50" y="248" fill="#22d3ee" font-family="Arial,sans-serif" font-weight="bold" font-size="15">LATENCY (PING)</text>' +
-      '<rect x="50" y="262" width="160" height="55" rx="6" fill="#1e293b" stroke="#475569"/>' +
-      '<text x="130" y="282" text-anchor="middle" fill="#94a3b8" font-family="Arial,sans-serif" font-size="11">Average</text>' +
-      '<text x="130" y="307" text-anchor="middle" fill="#ffffff" font-family="Arial,sans-serif" font-weight="bold" font-size="20">' + ping + ' ms</text>' +
-      '<rect x="220" y="262" width="160" height="55" rx="6" fill="#1e293b" stroke="#475569"/>' +
-      '<text x="300" y="282" text-anchor="middle" fill="#94a3b8" font-family="Arial,sans-serif" font-size="11">Minimum</text>' +
-      '<text x="300" y="307" text-anchor="middle" fill="#22c55e" font-family="Arial,sans-serif" font-weight="bold" font-size="20">' + minP + ' ms</text>' +
-      '<rect x="390" y="262" width="160" height="55" rx="6" fill="#1e293b" stroke="#475569"/>' +
-      '<text x="470" y="282" text-anchor="middle" fill="#94a3b8" font-family="Arial,sans-serif" font-size="11">Maximum</text>' +
-      '<text x="470" y="307" text-anchor="middle" fill="#ef4444" font-family="Arial,sans-serif" font-weight="bold" font-size="20">' + maxP + ' ms</text>' +
-      '<text x="50" y="350" fill="#94a3b8" font-family="Arial,sans-serif" font-size="11">Ping History:</text>' +
-      barsHtml +
-      '<rect x="30" y="440" width="540" height="40" rx="6" fill="#1e293b" stroke="#475569"/>' +
-      '<text x="300" y="465" text-anchor="middle" fill="#22d3ee" font-family="Arial,sans-serif" font-weight="bold" font-size="13">www.sajhanet.com  |  ' + speed + ' Mbps  |  ' + ping + 'ms ping  |  ' + rating + '</text>' +
-      '</svg>';
+    const svg = [
+      '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="490">',
+      '  <rect width="600" height="490" fill="#0f172a"/>',
+      '  <text x="300" y="30" text-anchor="middle" fill="#22d3ee" font-family="Arial,sans-serif" font-weight="bold" font-size="13">SAJHA NET</text>',
+      '  <text x="300" y="56" text-anchor="middle" fill="#ffffff" font-family="Arial,sans-serif" font-weight="bold" font-size="24">Speed Test Results</text>',
+      '  <text x="300" y="76" text-anchor="middle" fill="#94a3b8" font-family="Arial,sans-serif" font-size="12">' + now + '</text>',
+      '  <line x1="30" y1="90" x2="570" y2="90" stroke="#334155" stroke-width="1"/>',
+      '  <text x="50" y="120" fill="#22d3ee" font-family="Arial,sans-serif" font-weight="bold" font-size="15">DOWNLOAD SPEED</text>',
+      '  <text x="50" y="175" fill="#ffffff" font-family="Arial,sans-serif" font-weight="bold" font-size="48">' + speed + ' <tspan fill="#94a3b8" font-size="18">Mbps</tspan></text>',
+      '  <text x="50" y="200" fill="#94a3b8" font-family="Arial,sans-serif" font-size="12">Downloaded: ' + formatBytes(downloadSize) + '  |  Time: ' + downloadTime + 's  |  Size: ' + testSize + ' MB</text>',
+      '  <line x1="30" y1="218" x2="570" y2="218" stroke="#334155" stroke-width="1"/>',
+      '  <text x="50" y="248" fill="#22d3ee" font-family="Arial,sans-serif" font-weight="bold" font-size="15">LATENCY (PING)</text>',
+      '  <rect x="50" y="262" width="160" height="55" rx="6" fill="#1e293b" stroke="#475569"/>',
+      '  <text x="130" y="282" text-anchor="middle" fill="#94a3b8" font-family="Arial,sans-serif" font-size="11">Average</text>',
+      '  <text x="130" y="307" text-anchor="middle" fill="#ffffff" font-family="Arial,sans-serif" font-weight="bold" font-size="20">' + ping + ' ms</text>',
+      '  <rect x="220" y="262" width="160" height="55" rx="6" fill="#1e293b" stroke="#475569"/>',
+      '  <text x="300" y="282" text-anchor="middle" fill="#94a3b8" font-family="Arial,sans-serif" font-size="11">Minimum</text>',
+      '  <text x="300" y="307" text-anchor="middle" fill="#22c55e" font-family="Arial,sans-serif" font-weight="bold" font-size="20">' + minP + ' ms</text>',
+      '  <rect x="390" y="262" width="160" height="55" rx="6" fill="#1e293b" stroke="#475569"/>',
+      '  <text x="470" y="282" text-anchor="middle" fill="#94a3b8" font-family="Arial,sans-serif" font-size="11">Maximum</text>',
+      '  <text x="470" y="307" text-anchor="middle" fill="#ef4444" font-family="Arial,sans-serif" font-weight="bold" font-size="20">' + maxP + ' ms</text>',
+      '  <text x="50" y="350" fill="#94a3b8" font-family="Arial,sans-serif" font-size="11">Ping History:</text>',
+      barsSvg,
+      '  <rect x="30" y="440" width="540" height="40" rx="6" fill="#1e293b" stroke="#475569"/>',
+      '  <text x="300" y="465" text-anchor="middle" fill="#22d3ee" font-family="Arial,sans-serif" font-weight="bold" font-size="13">www.sajhanet.com  |  ' + speed + ' Mbps  |  ' + ping + 'ms ping  |  ' + rating + '</text>',
+      '</svg>'
+    ].join('\n');
 
-    var blob = new Blob([svgContent], { type: 'image/svg+xml' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
     a.href = url;
     a.download = 'sajha-net-speed-test-' + Date.now() + '.svg';
     document.body.appendChild(a);
@@ -292,8 +279,8 @@ export default function SpeedTest() {
     URL.revokeObjectURL(url);
   }, [speed, ping, pingResults, downloadSize, downloadTime, testSize, formatBytes]);
 
-  var minPing = pingResults.length > 0 ? Math.min.apply(null, pingResults.filter(function(r) { return r > 0; })) : 0;
-  var maxPing = pingResults.length > 0 ? Math.max.apply(null, pingResults.filter(function(r) { return r > 0; })) : 0;
+  const minPing = pingResults.length > 0 ? Math.min(...pingResults.filter((r) => r > 0)) : 0;
+  const maxPing = pingResults.length > 0 ? Math.max(...pingResults.filter((r) => r > 0)) : 0;
 
   return (
     <div className="pt-24 pb-16 min-h-screen">
@@ -303,7 +290,7 @@ export default function SpeedTest() {
         <div className="relative max-w-7xl mx-auto px-4 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <h1 className="text-4xl md:text-5xl font-bold mb-6">Speed <span className="text-primary-400">Test</span></h1>
-            <p className="text-xl text-white/70 max-w-2xl mx-auto">Test your internet connection speed with Sajha Net. Works on Windows, Mac, and all modern browsers.</p>
+            <p className="text-xl text-white/70 max-w-2xl mx-auto">Test your internet connection speed with Sajha Net.</p>
           </motion.div>
         </div>
       </section>
@@ -316,21 +303,13 @@ export default function SpeedTest() {
                 <FiWifi className="w-16 h-16 text-primary-500 mx-auto mb-6" />
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Ready to Test</h2>
                 <p className="text-gray-500 dark:text-gray-400 mb-8">Click the button below to measure your download speed.</p>
-
                 <div className="flex justify-center gap-3 mb-8">
                   {TEST_SIZES.map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => setTestSize(s)}
-                      className={`px-5 py-2 rounded-xl text-sm font-medium transition-all ${
-                        testSize === s ? 'gradient-bg text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      }`}
-                    >
+                    <button key={s} onClick={() => setTestSize(s)} className={`px-5 py-2 rounded-xl text-sm font-medium transition-all ${testSize === s ? 'gradient-bg text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>
                       {s} MB
                     </button>
                   ))}
                 </div>
-
                 <button onClick={startTest} className="px-10 py-4 gradient-bg text-white rounded-2xl font-bold text-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                   Start Speed Test
                 </button>
@@ -342,17 +321,10 @@ export default function SpeedTest() {
                 <Gauge speed={status === 'download' ? speed : 0} maxSpeed={gaugeMax} status={status} />
                 <div className="mt-4">
                   <p className="text-5xl font-bold gradient-text mb-2">{status === 'download' ? speed : 0} <span className="text-lg text-gray-500 dark:text-gray-400">Mbps</span></p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {status === 'ping' ? 'Measuring latency...' : 'Downloading test data...'}
-                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{status === 'ping' ? 'Measuring latency...' : 'Downloading test data...'}</p>
                 </div>
                 <div className="mt-6 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                  <motion.div
-                    className="h-3 rounded-full gradient-bg"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: 0.3 }}
-                  />
+                  <motion.div className="h-3 rounded-full gradient-bg" initial={{ width: 0 }} animate={{ width: progress + '%' }} transition={{ duration: 0.3 }} />
                 </div>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">{progress}% complete</p>
               </motion.div>
