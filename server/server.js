@@ -175,14 +175,23 @@ app.get('/api/health', (req, res) => {
     const User = require('./models/User');
 
     const pkgCount = await Package.countDocuments();
+
+    const bcrypt = require('bcryptjs');
+    const adminUser = await User.findOne({ email: 'admin@sajhanet.com' });
+    if (!adminUser) {
+      await User.create({ name: 'Admin', email: 'admin@sajhanet.com', password: 'Sajha@Admin2026', role: 'admin', phone: '+977-9801234567' });
+      console.log('Admin account created with new credentials.');
+    } else {
+      const isOldPassword = await bcrypt.compare('admin123', adminUser.password);
+      if (isOldPassword) {
+        adminUser.password = 'Sajha@Admin2026';
+        await adminUser.save();
+        console.log('Admin password updated to new credentials.');
+      }
+    }
+
     if (pkgCount === 0) {
       console.log('No packages found. Seeding default data...');
-      const bcrypt = require('bcryptjs');
-
-      const adminExists = await User.findOne({ email: 'admin@sajhanet.com' });
-      if (!adminExists) {
-        await User.create({ name: 'Admin', email: 'admin@sajhanet.com', password: 'admin123', role: 'admin', phone: '+977-9801234567' });
-      }
 
       await Package.insertMany([
         { name: 'Bronze', slug: 'bronze', speed: 80, type: 'internet', billingCycle: 'yearly', price: 6500, prices: { yearly: 6500, halfYearly: 3250, quarterly: 1625, monthly: 542 }, installationCharge: 0, features: ['Unlimited Internet', 'FREE WiFi Router', 'FREE Drop Wire', 'Fiber Connection', '24/7 Support'], includes: { router: true, mesh: false, tv: false, phone: false, unlimitedData: true, dropWire: true }, idealFor: ['Browsing', 'Social Media', 'Light Streaming'], isPopular: false, sortOrder: 1, description: 'Bronze package — 80 Mbps fiber internet.', shortDescription: '80 Mbps Fiber Internet' },

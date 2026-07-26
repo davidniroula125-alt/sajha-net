@@ -40,7 +40,7 @@ const seedData = async () => {
     const admin = await User.create({
       name: 'Admin',
       email: 'admin@sajhanet.com',
-      password: 'admin123',
+      password: 'Sajha@Admin2026',
       role: 'admin',
       phone: '+977-9801234567'
     });
@@ -178,7 +178,7 @@ const packages = await Package.insertMany([
     ]);
 
     console.log('Seed data created successfully!');
-    console.log('Admin credentials: admin@sajhanet.com / admin123');
+    console.log('Admin credentials: admin@sajhanet.com / Sajha@Admin2026');
     console.log('Customer credentials: ram@example.com / password123');
     process.exit(0);
   } catch (error) {
