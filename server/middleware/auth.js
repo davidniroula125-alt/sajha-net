@@ -1,5 +1,11 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Session = require('../models/Session');
+const crypto = require('crypto');
+
+const hashToken = (token) => {
+  return crypto.createHash('sha256').update(token).digest('hex');
+};
 
 const auth = async (req, res, next) => {
   try {
@@ -12,8 +18,18 @@ const auth = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({ success: false, message: 'Token is not valid' });
     }
+
+    const session = await Session.findOne({ tokenHash: hashToken(token), user: user._id, isActive: true });
+    if (!session) {
+      return res.status(401).json({ success: false, message: 'Session expired or revoked' });
+    }
+
+    session.lastActive = new Date();
+    await session.save();
+
     req.user = user;
     req.token = token;
+    req.session = session;
     next();
   } catch (error) {
     res.status(401).json({ success: false, message: 'Token is not valid' });

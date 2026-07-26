@@ -25,6 +25,7 @@ import GalleryPage from './pages/GalleryPage';
 import AnnouncementPage from './pages/AnnouncementPage';
 import ComplaintsPage from './pages/ComplaintsPage';
 import FeedbackPage from './pages/FeedbackPage';
+import Sessions from './pages/Sessions';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -71,6 +72,7 @@ function App() {
           <Route path="/announcements" element={<PrivateRoute><AdminLayout><AnnouncementPage /></AdminLayout></PrivateRoute>} />
           <Route path="/complaints" element={<PrivateRoute><AdminLayout><ComplaintsPage /></AdminLayout></PrivateRoute>} />
           <Route path="/feedbacks" element={<PrivateRoute><AdminLayout><FeedbackPage /></AdminLayout></PrivateRoute>} />
+          <Route path="/sessions" element={<PrivateRoute><AdminLayout><Sessions /></AdminLayout></PrivateRoute>} />
         </Routes>
       </Router>
     </AuthProvider>

@@ -41,6 +41,7 @@ export default function Sidebar() {
     ]},
     { label: 'System', links: [
       { to: '/audit-logs', icon: FiClock, label: 'Audit Logs' },
+      { to: '/sessions', icon: FiWifi, label: 'Active Sessions' },
     ]},
   ];
 

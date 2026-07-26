@@ -4,6 +4,7 @@ const Ticket = require('../models/Ticket');
 const Package = require('../models/Package');
 const Blog = require('../models/Blog');
 const ChatMessage = require('../models/ChatMessage');
+const Session = require('../models/Session');
 
 exports.getDashboardStats = async (req, res) => {
   try {
@@ -102,6 +103,65 @@ exports.updateUserSubscription = async (req, res) => {
 
     await app.save();
     res.json({ success: true, application: app });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getActiveSessions = async (req, res) => {
+  try {
+    const sessions = await Session.find({ isActive: true })
+      .populate('user', 'name email phone role')
+      .sort('-lastActive');
+    res.json({ success: true, sessions });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.revokeSession = async (req, res) => {
+  try {
+    await Session.findByIdAndUpdate(req.params.id, { isActive: false });
+    res.json({ success: true, message: 'Session revoked' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.revokeAllUserSessions = async (req, res) => {
+  try {
+    await Session.updateMany({ user: req.params.userId, isActive: true }, { isActive: false });
+    res.json({ success: true, message: 'All sessions revoked for this user' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getSessions = async (req, res) => {
+  try {
+    const sessions = await Session.find({ isActive: true })
+      .populate('user', 'name email role')
+      .sort('-lastActive');
+    res.json({ success: true, sessions });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.revokeSession = async (req, res) => {
+  try {
+    const session = await Session.findByIdAndUpdate(req.params.id, { isActive: false }, { new: true });
+    if (!session) return res.status(404).json({ success: false, message: 'Session not found' });
+    res.json({ success: true, message: 'Session revoked' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.revokeAllUserSessions = async (req, res) => {
+  try {
+    await Session.updateMany({ user: req.params.id, isActive: true }, { isActive: false });
+    res.json({ success: true, message: 'All sessions revoked for this user' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

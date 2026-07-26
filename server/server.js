@@ -44,7 +44,9 @@ app.use('/api/', limiter);
 
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sajhanet', {
   serverSelectionTimeoutMS: 15000,
-  heartbeatFrequencyMS: 30000
+  heartbeatFrequencyMS: 30000,
+  tls: true,
+  tlsAllowInvalidCertificates: true,
 })
   .then(() => console.log('MongoDB Connected'))
   .catch(err => console.error('MongoDB Error:', err.message));

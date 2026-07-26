@@ -7,7 +7,7 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('adminToken'));
+  const [token, setToken] = useState(sessionStorage.getItem('adminToken'));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,14 +28,19 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const { data } = await axios.post('/api/auth/login', { email, password });
     if (data.user.role !== 'admin' && data.user.role !== 'staff') throw new Error('Access denied');
-    localStorage.setItem('adminToken', data.token);
+    sessionStorage.setItem('adminToken', data.token);
     setToken(data.token);
     setUser(data.user);
     return data;
   };
 
-  const logout = () => {
-    localStorage.removeItem('adminToken');
+  const logout = async () => {
+    try {
+      if (token) {
+        await axios.post('/api/auth/logout');
+      }
+    } catch {}
+    sessionStorage.removeItem('adminToken');
     delete axios.defaults.headers.common['Authorization'];
     setToken(null);
     setUser(null);

@@ -11,7 +11,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(sessionStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const { data } = await axios.post('/api/auth/login', { email, password });
-    localStorage.setItem('token', data.token);
+    sessionStorage.setItem('token', data.token);
     setToken(data.token);
     setUser(data.user);
     return data;
@@ -44,14 +44,19 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, password, phone) => {
     const { data } = await axios.post('/api/auth/register', { name, email, password, phone });
-    localStorage.setItem('token', data.token);
+    sessionStorage.setItem('token', data.token);
     setToken(data.token);
     setUser(data.user);
     return data;
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
+  const logout = async () => {
+    try {
+      if (token) {
+        await axios.post('/api/auth/logout');
+      }
+    } catch {}
+    sessionStorage.removeItem('token');
     delete axios.defaults.headers.common['Authorization'];
     setToken(null);
     setUser(null);
