@@ -96,7 +96,7 @@ export default function ComplaintsPage() {
                     </span>
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${priorityColors[c.priority]}`}>{c.priority}</span>
                   </div>
-                  <p className="text-xs text-gray-400 mb-1">{c.name} • {c.email} • #{c._id.slice(-6).toUpperCase()}</p>
+                  <p className="text-xs text-gray-400 mb-1">{c.name} • {c.email} • {c.ticketId || '#' + c._id.slice(-6).toUpperCase()}</p>
                   <p className="text-sm text-gray-600 line-clamp-1">{c.description}</p>
                   <div className="flex items-center space-x-3 mt-2 text-xs text-gray-400">
                     <span>Category: {categoryLabels[c.category]}</span>

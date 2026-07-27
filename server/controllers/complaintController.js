@@ -1,5 +1,6 @@
 const Complaint = require('../models/Complaint');
 const AuditLog = require('../models/AuditLog');
+const crypto = require('crypto');
 
 const logAudit = async (user, action, details, module, req) => {
   try {
@@ -13,8 +14,10 @@ const logAudit = async (user, action, details, module, req) => {
 
 exports.createComplaint = async (req, res) => {
   try {
+    const ticketId = 'CMP-' + crypto.randomBytes(4).toString('hex').toUpperCase();
     const complaint = await Complaint.create({
       user: req.user?._id,
+      ticketId,
       name: req.body.name,
       email: req.body.email,
       phone: req.body.phone,

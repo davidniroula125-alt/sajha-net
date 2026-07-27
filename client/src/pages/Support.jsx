@@ -307,7 +307,7 @@ export default function Support() {
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <h3 className="font-bold text-gray-900 dark:text-white">{c.subject}</h3>
-                          <p className="text-xs text-gray-400 dark:text-gray-500">#{c._id.slice(-6).toUpperCase()} • {new Date(c.createdAt).toLocaleDateString()}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">{c.ticketId || '#' + c._id.slice(-6).toUpperCase()} • {new Date(c.createdAt).toLocaleDateString()}</p>
                         </div>
                         <span className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium ${statusColors[c.status]}`}>
                           <StatusIcon className="w-3 h-3" />

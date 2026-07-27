@@ -161,7 +161,7 @@ export default function Tickets() {
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center"><FiMessageCircle className="w-5 h-5 text-red-500" /></div>
-                      <div><p className="font-medium text-gray-900">{c.subject}</p><p className="text-xs text-gray-500">{c.connectionId || 'No ID'}</p></div>
+                      <div><p className="font-medium text-gray-900">{c.subject}</p><p className="text-xs text-gray-500">{c.ticketId || c.connectionId || 'No ID'}</p></div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">{c.name || 'N/A'}</td>

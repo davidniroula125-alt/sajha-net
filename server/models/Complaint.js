@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const complaintSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  ticketId: { type: String, unique: true },
   name: { type: String, required: true },
   email: { type: String, required: true },
   phone: { type: String, default: '' },
