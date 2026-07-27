@@ -44,11 +44,12 @@ exports.register = async (req, res) => {
     const token = generateToken(user._id);
 
     const { device, browser, os } = parseUserAgent(req.headers['user-agent']);
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.connection?.remoteAddress || '';
     await Session.create({
       user: user._id,
       tokenHash: hashToken(token),
       device, browser, os,
-      ip: req.ip || req.connection?.remoteAddress || '',
+      ip: clientIp,
     });
 
     res.status(201).json({ success: true, token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
@@ -76,11 +77,12 @@ exports.login = async (req, res) => {
     const token = generateToken(user._id);
 
     const { device, browser, os } = parseUserAgent(req.headers['user-agent']);
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.connection?.remoteAddress || '';
     await Session.create({
       user: user._id,
       tokenHash: hashToken(token),
       device, browser, os,
-      ip: req.ip || req.connection?.remoteAddress || '',
+      ip: clientIp,
     });
 
     res.json({ success: true, token, user: { id: user._id, name: user.name, email: user.email, role: user.role, avatar: user.avatar } });
